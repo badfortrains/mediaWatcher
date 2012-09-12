@@ -547,7 +547,9 @@ private:
 				V8_SET(temp,"Title",(*item)->m_Title);
 				V8_SET(temp,"Artist",(*item)->m_People.artists.GetFirstItem()->name);
 				V8_SET(temp,"Album",(*item)->m_Affiliation.album);
-				temp->Set(String::New("TrackNumber"),Integer::New((*item)->m_MiscInfo.original_track_number));
+				//temp->Set(String::New("TrackNumber"),Integer::New((*item)->m_MiscInfo.original_track_number));
+				//temp->Set(String::New("TrackNumber"),Str::New((*item)->m_ObjectID));
+				V8_SET(temp,"oID",(*item)->m_ObjectID);
 
 		 		//add a copy of the temp object into our array
 		 		trackArray->Set(i,temp->Clone());
