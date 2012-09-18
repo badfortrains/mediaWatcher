@@ -1,0 +1,6 @@
+Neptune.h
+.DS_Store
+*.a
+*.o
+*.gyp
+build/
