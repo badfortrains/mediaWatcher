@@ -143,7 +143,9 @@ public:
     upnp.Start();
 
     //loop forever
-    while(1){};
+    while(1){
+      sleep(10);
+    };
 
     //return 0;
 
