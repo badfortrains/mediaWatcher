@@ -41,7 +41,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-NPT_SET_LOCAL_LOGGER("platinum.tests.mediadfinder")
+NPT_SET_LOCAL_LOGGER("platinum.core.upnp")
 
 /*----------------------------------------------------------------------
 |   Media_Finder::Media_Finder
@@ -331,17 +331,40 @@ Media_Finder::StopTrack(PLT_BrowseData* status)
 				status->shared_var.SetValue(1);
 		}
 }
-/*
-    void Media_Finder::OnGetMediaInfoResult(NPT_Result               res, 
+
+void
+Media_Finder::GetTrackInfo(Info_data* status)
+{
+    PLT_DeviceDataReference device;
+    GetCurMR(device);
+    if (!device.IsNull()) {
+        GetMediaInfo(device, 0, status);
+    }else{
+        status->res = -1;
+        status->shared_var.SetValue(1);
+    }
+}
+
+void 
+Media_Finder::OnGetMediaInfoResult(NPT_Result               res, 
 	                             PLT_DeviceDataReference& device,
 															 PLT_MediaInfo*						info,
 	                             void*                    userdata)
-	         {NPT_LOG_INFO("GOT MEDIA DATA");
+{NPT_LOG_INFO("GOT MEDIA DATA");
 						NPT_LOG_INFO(info->cur_uri);
 						NPT_LOG_INFO(info->cur_metadata);
-		
-						};
-*/
+    NPT_COMPILER_UNUSED(device);
+    NPT_LOG_INFO("results!!!!!");
+    if (!userdata) return;
+    Info_data* data = (Info_data*) userdata;
+    (*data).res = res;
+    (*data).info = (*info);
+    (*data).shared_var.SetValue(1);
+    NPT_LOG_INFO("set data");
+
+
+};
+
 void
 Media_Finder::PlayTrack(PLT_BrowseData* status)
 {

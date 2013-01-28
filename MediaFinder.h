@@ -59,6 +59,12 @@ struct EventInfo{
 	NPT_String Value;
 };
 
+struct Info_data{
+    NPT_SharedVariable shared_var;
+    NPT_Result         res;
+    PLT_MediaInfo   info;
+};
+
 struct controllerInfo{
 	NPT_Mutex m_ChangedLock;
 	NPT_SharedVariable hasChanged;
@@ -114,16 +120,17 @@ public:
 	                             PLT_DeviceDataReference& device,  
 	                             void*                    userdata)
 	         {OnCommandResult(res,device,userdata);};
- //   void OnGetMediaInfoResult(NPT_Result               res, 
-	//                             PLT_DeviceDataReference& device,
-	//														 PLT_MediaInfo*						info,
-//	                             void*                    userdata);
+    void OnGetMediaInfoResult(NPT_Result               res, 
+	                             PLT_DeviceDataReference& device,
+								 PLT_MediaInfo*						info,
+	                             void*                    userdata);
 
   void StopTrack(PLT_BrowseData* status);
 	void PlayTrack(PLT_BrowseData* status);
   void PauseTrack(PLT_BrowseData* status);
 	void Mute(bool value, PLT_BrowseData* status);
   void Volume(int value, PLT_BrowseData* status);
+  void GetTrackInfo(Info_data* status);
 	NPT_Result  DoSearch(NPT_String UUID,NPT_String searchCriteria,PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
 	NPT_Result  OpenNextTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);

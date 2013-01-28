@@ -29,6 +29,7 @@ class Play;
 class Open;
 class OpenNext;
 class GetTracks;
+class GetMediaInfo;
 class WatchEvents;
 class Pause;
 
@@ -54,6 +55,7 @@ public:
   static Persistent<FunctionTemplate> s_ct;
   static void Init(Handle<Object> target)
   {
+    NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=63");
     HandleScope scope;
     //Handle<Value>
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
@@ -72,6 +74,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "setRenderer", SetRenderer);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "watchEvents", Action<WatchEvents>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getTracks", Action<GetTracks>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "getMediaInfo", Action<GetMediaInfo>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "stop", Action<Stop>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "pause", Action<Pause>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "play", Action<Play>);
@@ -264,7 +267,7 @@ public:
 	MediaWatcher *mw;
 	Media_Finder*	controller;
 	Persistent<Function> cb;
-	NPT_Result res;
+  NPT_Result res;
 	void Start(const Arguments& args){
 		HandleScope scope;
 		if (args.Length() <= 0 || !args[0]->IsFunction())	
@@ -330,7 +333,6 @@ private:
 		CallOnComplete(String::New("EVENT"));
 	}
 };
-
 
 
 class Stop : public QueryWrap{
@@ -502,6 +504,32 @@ private:
 		
 	}
 };
+
+
+class GetMediaInfo : public QueryWrap{
+public:
+  PLT_MediaInfo info;
+private:
+  void ThreadTask(){
+    Info_data playInfo;
+    playInfo.shared_var.SetValue(0);
+    controller->GetTrackInfo(&playInfo);
+    playInfo.shared_var.WaitUntilEquals(1);
+    res = playInfo.res;
+    info = playInfo.info;
+  }
+  void After(){ 
+    NPT_LOG_INFO("After stop");
+    if(NPT_SUCCEEDED(res)){
+      Local<Object> resObj = Object::New();
+      V8_SET(resObj,"uri",info.cur_uri);
+      CallOnComplete(resObj);
+    }else{
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
+    }
+  }
+};
+
 
 class GetTracks : public QueryWrap{
 private:
