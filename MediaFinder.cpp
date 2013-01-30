@@ -13,7 +13,7 @@
 |
 | OEMs, ISVs, VARs and other distributors that combine and 
 | distribute commercially licensed software with Platinum software
-| and do not wish to distribute the source code for the commercially
+| and do not wish to distribute the source code for the vcommercially
 | licensed software under version 2, or (at your option) any later
 | version, of the GNU General Public License (the "GPL") must enter
 | into a commercial license agreement with Plutinosoft, LLC.
@@ -41,7 +41,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-NPT_SET_LOCAL_LOGGER("platinum.core.upnp")
+NPT_SET_LOCAL_LOGGER("platinum.core.mediafinder  ")
 
 /*----------------------------------------------------------------------
 |   Media_Finder::Media_Finder
@@ -75,13 +75,14 @@ Media_Finder::~Media_Finder()
 +---------------------------------------------------------------------*/
 void 
 Media_Finder::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
+    printf("THERE IS A VARIABLE CHANGE");
 		NPT_LOG_INFO("SERVICE TYPE ="+ service->GetServiceType());
 		NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
 		NPT_String name, value;
 		while (item) {
 			name = (*item)->GetName();
 			value = (*item)->GetValue();
-			if(name == "Mute" || name == "Volume" || name == "TransportState"){
+			//if(name == "Mute" || name == "Volume" || name == "TransportState"){
 				EventInfo* newEvent = new EventInfo;
 				newEvent->Name = name;
 				newEvent->Value = value;
@@ -89,7 +90,7 @@ Media_Finder::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_Stat
 				NPT_AutoLock lockEvnt(cBaton->m_EventStack);
 				cBaton->m_EventStack.Push(*newEvent);
 				cBaton->hasChanged.SetValue(1);
-			}
+			//}
 			item++;
 		}
 }
@@ -326,7 +327,7 @@ Media_Finder::StopTrack(PLT_BrowseData* status)
     GetCurMR(device);
     if (!device.IsNull()) {
         Stop(device, 0, status);
-    }else{
+    }else if(status != NULL){
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
@@ -372,7 +373,7 @@ Media_Finder::PlayTrack(PLT_BrowseData* status)
     GetCurMR(device);
     if (!device.IsNull()) {
         Play(device, 0, "1", status);
-    }else{
+    }else if(status != NULL){
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}

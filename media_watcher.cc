@@ -12,7 +12,6 @@
 using namespace node;
 using namespace v8;
 
-NPT_SET_LOCAL_LOGGER("platinum.tests.mediadfinder")
 
 #define REQ_FUN_ARG(I, VAR)                                             \
   if (args.Length() <= (I) || !args[I]->IsFunction())                   \
@@ -41,7 +40,6 @@ static Handle<Value> Action(const Arguments& args){
 }
 
 
-
 class MediaWatcher: ObjectWrap
 {
 private:
@@ -55,7 +53,6 @@ public:
   static Persistent<FunctionTemplate> s_ct;
   static void Init(Handle<Object> target)
   {
-    NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=63");
     HandleScope scope;
     //Handle<Value>
     Local<FunctionTemplate> t = FunctionTemplate::New(New);
@@ -90,7 +87,6 @@ public:
   {
 
 
-	NPT_LogManager::GetDefault().Configure("plist:platinum.tests.mediadfinder.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=42");
 	watchInfo = new controllerInfo;
   }
 
@@ -135,7 +131,7 @@ public:
   static void EIO_Watch(uv_work_t* req)
   {
    watch_baton_t *baton = static_cast<watch_baton_t *>(req->data);
-
+   NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=63");
    //create upnp engine
     PLT_UPnP upnp;
     //create control point
@@ -325,6 +321,7 @@ protected:
 class WatchEvents : public QueryWrap{
 private:
 	void ThreadTask(){
+   printf("start WATCHING THE FADSASDASD");
    mw->watchInfo->hasChanged.WaitUntilEquals(1);
    mw->watchInfo->hasChanged.SetValue(0);
 	}
@@ -338,11 +335,14 @@ private:
 class Stop : public QueryWrap{
 private:
 	void ThreadTask(){
+    printf("start stop");
+    NPT_LOG_INFO("START STOP");
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->StopTrack(&playInfo);
-		playInfo.shared_var.WaitUntilEquals(1);
-		res = playInfo.res;
+		controller->StopTrack(NULL);
+		//playInfo.shared_var.WaitUntilEquals(1);
+		//res = playInfo.res;
+    res = 0;
 
 
 	}
@@ -434,9 +434,11 @@ private:
 	void ThreadTask(){
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->PlayTrack(&playInfo);
-		playInfo.shared_var.WaitUntilEquals(1);
-		res = playInfo.res;
+		controller->PlayTrack(NULL);
+    //  &playInfo);
+		//playInfo.shared_var.WaitUntilEquals(1);
+		//res = playInfo.res;
+    res = 0;
 	}
 	void After(){ 
 		NPT_LOG_INFO("After play");
