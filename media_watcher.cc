@@ -516,7 +516,7 @@ private:
     Info_data playInfo;
     playInfo.shared_var.SetValue(0);
     controller->GetTrackInfo(&playInfo);
-    playInfo.shared_var.WaitUntilEquals(1);
+    playInfo.shared_var.WaitUntilEquals(1,30000);
     res = playInfo.res;
     info = playInfo.info;
   }
