@@ -321,7 +321,6 @@ protected:
 class WatchEvents : public QueryWrap{
 private:
 	void ThreadTask(){
-   printf("start WATCHING THE FADSASDASD");
    mw->watchInfo->hasChanged.WaitUntilEquals(1);
    mw->watchInfo->hasChanged.SetValue(0);
 	}
@@ -335,7 +334,6 @@ private:
 class Stop : public QueryWrap{
 private:
 	void ThreadTask(){
-    printf("start stop");
     NPT_LOG_INFO("START STOP");
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);

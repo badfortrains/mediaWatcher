@@ -75,7 +75,6 @@ Media_Finder::~Media_Finder()
 +---------------------------------------------------------------------*/
 void 
 Media_Finder::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
-    printf("THERE IS A VARIABLE CHANGE");
 		NPT_LOG_INFO("SERVICE TYPE ="+ service->GetServiceType());
 		NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
 		NPT_String name, value;
