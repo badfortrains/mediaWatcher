@@ -131,7 +131,7 @@ public:
   static void EIO_Watch(uv_work_t* req)
   {
    watch_baton_t *baton = static_cast<watch_baton_t *>(req->data);
-   NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=63");
+   //NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=63");
    //create upnp engine
     PLT_UPnP upnp;
     //create control point
