@@ -253,7 +253,7 @@ Media_Finder::getDeviceReference(NPT_String UUID){
 }
 
 NPT_Result
-Media_Finder::DoSearch(NPT_String UUID,NPT_String searchCriteria, PLT_MediaObjectListReference& resultList){
+Media_Finder::DoSearch(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList){
 	NPT_Result res = NPT_FAILURE;
     PLT_DeviceDataReference device;
     device = getDeviceReference(UUID);
@@ -271,7 +271,7 @@ Media_Finder::DoSearch(NPT_String UUID,NPT_String searchCriteria, PLT_MediaObjec
 
 	res = BrowseSync(
             device, 
-            "1$268435466", 
+            object_id, 
             resultList, 
             false,
 		0);		
@@ -279,6 +279,26 @@ Media_Finder::DoSearch(NPT_String UUID,NPT_String searchCriteria, PLT_MediaObjec
 	return res;
 
 }
+
+NPT_Result
+Media_Finder::DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList)
+{
+    NPT_Result res = NPT_FAILURE;
+    PLT_DeviceDataReference* device = NULL;
+    GetMediaServersMap().Get(UUID, device);
+    if (device) {
+
+        // send off the browse packet and block
+        res = BrowseSync(
+            *device,
+            object_id,
+            resultList,
+            false);
+    }
+
+    return res;
+}
+
 void
 Media_Finder::Mute(bool value, PLT_BrowseData* status)
 {

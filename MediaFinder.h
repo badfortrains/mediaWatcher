@@ -125,14 +125,15 @@ public:
 								 PLT_MediaInfo*						info,
 	                             void*                    userdata);
 
-  void StopTrack(PLT_BrowseData* status);
+    void StopTrack(PLT_BrowseData* status);
 	void PlayTrack(PLT_BrowseData* status);
-  void PauseTrack(PLT_BrowseData* status);
+    void PauseTrack(PLT_BrowseData* status);
 	void Mute(bool value, PLT_BrowseData* status);
-  void Volume(int value, PLT_BrowseData* status);
-  void GetTrackInfo(Info_data* status);
-	NPT_Result  DoSearch(NPT_String UUID,NPT_String searchCriteria,PLT_MediaObjectListReference& resultList);
+    void Volume(int value, PLT_BrowseData* status);
+    void GetTrackInfo(Info_data* status);
+	NPT_Result  DoSearch(NPT_String UUID,const char* object_id,PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
+    NPT_Result  DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenNextTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
 	NPT_Result	SetMR(NPT_String UUID);
 	PLT_DeviceMap GetMRs();

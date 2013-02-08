@@ -31,6 +31,7 @@ class GetTracks;
 class GetMediaInfo;
 class WatchEvents;
 class Pause;
+class BrowseDirectory;
 
 template <class Wrap>
 static Handle<Value> Action(const Arguments& args){
@@ -71,6 +72,7 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "setRenderer", SetRenderer);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "watchEvents", Action<WatchEvents>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getTracks", Action<GetTracks>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "doBrowse", Action<BrowseDirectory>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getMediaInfo", Action<GetMediaInfo>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "stop", Action<Stop>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "pause", Action<Pause>);
@@ -535,6 +537,7 @@ class GetTracks : public QueryWrap{
 private:
 	NPT_Array<PLT_MediaItemResource> *resource;
 	NPT_String UUID;
+  NPT_String dirID;
 	PLT_MediaObjectListReference tracks;
 
   //return an array of objects that contain a uri, and a protocol string
@@ -555,10 +558,11 @@ private:
 	void SetupBaton(const Arguments& args){
 		NPT_LOG_INFO("start get tracks");
     UUID = *String::AsciiValue(args[1]);
+    dirID = *String::AsciiValue(args[2]);
 	}
 	void ThreadTask(){ 
    NPT_LOG_INFO("fire get tracks ");
-   res = controller->DoSearch(UUID,"*",tracks);
+   res = controller->DoSearch(UUID,dirID,tracks);
 	}
 	void After(){
 		HandleScope scopeTest;
@@ -575,10 +579,16 @@ private:
 		 		temp->Set(String::New("Resources"),wrapResources(&(*item)->m_Resources));
 			  V8_SET(temp,"Didl",(*item)->m_Didl);
 				V8_SET(temp,"Title",(*item)->m_Title);
-				V8_SET(temp,"Artist",(*item)->m_People.artists.GetFirstItem()->name);
+        NPT_List<PLT_PersonRole>::Iterator person = (*item)->m_People.artists.GetFirstItem();
+        if(person){
+				  V8_SET(temp,"Artist",(*item)->m_People.artists.GetFirstItem()->name);
+        }else{
+          temp->Set(String::New("Artist"),String::New("unknown"));
+        }
 				V8_SET(temp,"Album",(*item)->m_Affiliation.album);
 				temp->Set(String::New("TrackNumber"),Integer::New((*item)->m_MiscInfo.original_track_number));
-				//temp->Set(String::New("TrackNumber"),Str::New((*item)->m_ObjectID));
+				
+        //temp->Set(String::New("TrackNumber"),Str::New((*item)->m_ObjectID));
 				V8_SET(temp,"oID",(*item)->m_ObjectID);
 
 		 		//add a copy of the temp object into our array
@@ -597,6 +607,43 @@ private:
 			//argv[0] = String::New("fail");		
 		}
 	}
+};
+
+class BrowseDirectory : public QueryWrap{
+private:
+  PLT_MediaObjectListReference browseResults;
+  NPT_String UUID;
+  NPT_String dirID;
+
+
+  void SetupBaton(const Arguments& args){
+    UUID = *String::AsciiValue(args[1]);
+    dirID = *String::AsciiValue(args[2]);
+  }
+  void ThreadTask(){ 
+   res = controller->DoBrowse(UUID,dirID,browseResults);
+  }
+  void After(){
+    HandleScope scopeTest;
+    if(NPT_SUCCEEDED(res)){
+      Local<Array> dirArray = Array::New();
+
+      NPT_List<PLT_MediaObject*>::Iterator item = browseResults->GetFirstItem();
+      int i =0;
+      while (item) {
+         Local<Object> temp = Object::New();
+          V8_SET(temp,"id",(*item)->m_ObjectID);
+          V8_SET(temp,"name",(*item)->m_Title);
+          temp->Set(String::New("isContainer"),Boolean::New((*item)->IsContainer()));
+          dirArray->Set(i++,temp);
+          ++item;
+      }
+      CallOnComplete(dirArray);
+    }else{
+      NPT_LOG_INFO("fail");
+      CallOnComplete(String::New("fail"));
+    }
+  }
 };
 
 class OpenNext : public QueryWrap{
