@@ -131,8 +131,9 @@ Media_Finder::OnMSAdded(PLT_DeviceDataReference& device)
 	cBaton->m_DeviceStack.Push(device->GetUUID());
 
 	EventInfo* newEvent = new EventInfo;
-	newEvent->Name = "msAdd";
+	newEvent->Name = "serverAdded";
 	newEvent->UUID = device->GetUUID();
+  newEvent->Value = device->GetFriendlyName();
 	cBaton->m_EventStack.Push(*newEvent);
 	cBaton->hasChanged.SetValue(1);
 
@@ -154,7 +155,7 @@ Media_Finder::OnMRAdded(PLT_DeviceDataReference& device)
         m_MediaRenderers.Put(uuid, device);
 				NPT_AutoLock lockEvnt(cBaton->m_EventStack);
 				EventInfo* newEvent = new EventInfo;
-				newEvent->Name = "mrAdd";
+				newEvent->Name = "rendererAdded";
 				newEvent->UUID = device->GetUUID();
 				newEvent->Value = device->GetFriendlyName();
 				cBaton->m_EventStack.Push(*newEvent);
@@ -175,6 +176,13 @@ Media_Finder::OnMRRemoved(PLT_DeviceDataReference& device)
     {
         NPT_AutoLock lock(m_MediaRenderers);
         m_MediaRenderers.Erase(uuid);
+        NPT_AutoLock lockEvnt(cBaton->m_EventStack);
+        EventInfo* newEvent = new EventInfo;
+        newEvent->Name = "rendererRemoved";
+        newEvent->UUID = device->GetUUID();
+        newEvent->Value = device->GetFriendlyName();
+        cBaton->m_EventStack.Push(*newEvent);
+        cBaton->hasChanged.SetValue(1);
     }
 
     {
@@ -299,70 +307,75 @@ Media_Finder::DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectLis
     return res;
 }
 
-void
+NPT_Result
 Media_Finder::Mute(bool value, PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        SetMute(device, 0, "Master", value, status);
+        return SetMute(device, 0, "Master", value, status);
     }else{
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
+    return NPT_FAILURE;
 }
 
-void
+NPT_Result
 Media_Finder::Volume(int value, PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        SetVolume(device, 0, "Master", value, status);
+        return SetVolume(device, 0, "Master", value, status);
     }else{
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
+    return NPT_FAILURE;
 }
 
 
-void
+NPT_Result
 Media_Finder::PauseTrack(PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        Pause(device, 0, status);
+        return Pause(device, 0, status);
     }else{
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
+    return NPT_FAILURE;
 }
 
-void
+NPT_Result
 Media_Finder::StopTrack(PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        Stop(device, 0, status);
+        return Stop(device, 0, status);
     }else if(status != NULL){
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
+    return NPT_FAILURE;
 }
 
-void
+NPT_Result
 Media_Finder::GetTrackInfo(Info_data* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        GetMediaInfo(device, 0, status);
+        return GetMediaInfo(device, 0, status);
     }else{
         status->res = -1;
         status->shared_var.SetValue(1);
     }
+    return NPT_FAILURE;
 }
 
 void 
@@ -385,18 +398,18 @@ Media_Finder::OnGetMediaInfoResult(NPT_Result               res,
 
 };
 
-void
+NPT_Result
 Media_Finder::PlayTrack(PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;
     GetCurMR(device);
     if (!device.IsNull()) {
-        Play(device, 0, "1", status);
+        return Play(device, 0, "1", status);
     }else if(status != NULL){
 				status->res = -1;
 				status->shared_var.SetValue(1);
 		}
-			//	GetMediaInfo(device, 0, NULL);
+		return NPT_FAILURE;
 }
 
 NPT_Result

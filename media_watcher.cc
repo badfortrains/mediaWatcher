@@ -339,12 +339,12 @@ private:
     NPT_LOG_INFO("START STOP");
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->StopTrack(NULL);
-		//playInfo.shared_var.WaitUntilEquals(1);
-		//res = playInfo.res;
-    res = 0;
-
-
+		if(NPT_SUCCEEDED(controller->StopTrack(&playInfo))){
+      playInfo.shared_var.WaitUntilEquals(1);
+      res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
 	}
 	void After(){ 
 		NPT_LOG_INFO("After stop");
@@ -368,10 +368,12 @@ private:
 	void ThreadTask(){
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->Volume(value, &playInfo);
-		playInfo.shared_var.WaitUntilEquals(1);
-		res = playInfo.res;
-
+		if(NPT_SUCCEEDED(controller->Volume(value, &playInfo))){
+  		playInfo.shared_var.WaitUntilEquals(1);
+  		res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
 
 	}
 	void After(){ 
@@ -395,11 +397,12 @@ private:
 	void ThreadTask(){
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->Mute(value, &playInfo);
-		playInfo.shared_var.WaitUntilEquals(1);
-		res = playInfo.res;
-
-
+		if(NPT_SUCCEEDED(controller->Mute(value, &playInfo))){
+  		playInfo.shared_var.WaitUntilEquals(1);
+  		res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
 	}
 	void After(){ 
 		if(NPT_SUCCEEDED(res))
@@ -414,11 +417,12 @@ private:
 	void ThreadTask(){
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->PauseTrack(&playInfo);
-		playInfo.shared_var.WaitUntilEquals(1);
-		res = playInfo.res;
-
-
+		if(NPT_SUCCEEDED(controller->PauseTrack(&playInfo))){
+      playInfo.shared_var.WaitUntilEquals(1);
+      res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
 	}
 	void After(){ 
 		if(NPT_SUCCEEDED(res))
@@ -434,11 +438,12 @@ private:
 	void ThreadTask(){
 		PLT_BrowseData playInfo;
 		playInfo.shared_var.SetValue(0);
-		controller->PlayTrack(NULL);
-    //  &playInfo);
-		//playInfo.shared_var.WaitUntilEquals(1);
-		//res = playInfo.res;
-    res = 0;
+		if(NPT_SUCCEEDED(controller->PlayTrack(&playInfo))){
+      playInfo.shared_var.WaitUntilEquals(1);
+      res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
 	}
 	void After(){ 
 		NPT_LOG_INFO("After play");
@@ -491,9 +496,10 @@ private:
 	void ThreadTask(){ 
 		PLT_BrowseData playInfo;
 	  playInfo.shared_var.SetValue(0);
-		if(NPT_SUCCEEDED(controller->OpenTrack(*resource, *Didl, &playInfo)))
+		if(NPT_SUCCEEDED(controller->OpenTrack(*resource, *Didl, &playInfo))){
 			playInfo.shared_var.WaitUntilEquals(1);
-    else{
+      res = playInfo.res;
+    }else{
 			res = NPT_FAILURE;
 	  }
 	}
@@ -628,15 +634,17 @@ private:
     if(NPT_SUCCEEDED(res)){
       Local<Array> dirArray = Array::New();
 
-      NPT_List<PLT_MediaObject*>::Iterator item = browseResults->GetFirstItem();
-      int i =0;
-      while (item) {
-         Local<Object> temp = Object::New();
-          V8_SET(temp,"id",(*item)->m_ObjectID);
-          V8_SET(temp,"name",(*item)->m_Title);
-          temp->Set(String::New("isContainer"),Boolean::New((*item)->IsContainer()));
-          dirArray->Set(i++,temp);
-          ++item;
+      if(!browseResults.IsNull()){
+        NPT_List<PLT_MediaObject*>::Iterator item = browseResults->GetFirstItem();
+        int i =0;
+        while (item) {
+           Local<Object> temp = Object::New();
+            V8_SET(temp,"_id",(*item)->m_ObjectID);
+            V8_SET(temp,"Title",(*item)->m_Title);
+            temp->Set(String::New("isContainer"),Boolean::New((*item)->IsContainer()));
+            dirArray->Set(i++,temp);
+            ++item;
+        }
       }
       CallOnComplete(dirArray);
     }else{
@@ -660,9 +668,10 @@ private:
 		//Open* newSelf = (Open*) this;
 		PLT_BrowseData playInfo;
 	  playInfo.shared_var.SetValue(0);
-		if(NPT_SUCCEEDED(controller->OpenNextTrack(*resource, *Didl, &playInfo)))
+		if(NPT_SUCCEEDED(controller->OpenNextTrack(*resource, *Didl, &playInfo))){
 			playInfo.shared_var.WaitUntilEquals(1);
-    else{
+      res = playInfo.res;
+    }else{
 			res = NPT_FAILURE;
 	  }
 	}
