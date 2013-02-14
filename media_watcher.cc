@@ -32,6 +32,8 @@ class GetMediaInfo;
 class WatchEvents;
 class Pause;
 class BrowseDirectory;
+class GetMediaPosition;
+class SetPosition;
 
 template <class Wrap>
 static Handle<Value> Action(const Arguments& args){
@@ -74,6 +76,8 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getTracks", Action<GetTracks>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "doBrowse", Action<BrowseDirectory>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getMediaInfo", Action<GetMediaInfo>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "seek", Action<SetPosition>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "getPosition", Action<GetMediaPosition>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "stop", Action<Stop>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "pause", Action<Pause>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "play", Action<Play>);
@@ -527,10 +531,35 @@ private:
     info = playInfo.info;
   }
   void After(){ 
-    NPT_LOG_INFO("After stop");
+    NPT_LOG_INFO("After GetMediaInfo");
     if(NPT_SUCCEEDED(res)){
       Local<Object> resObj = Object::New();
       V8_SET(resObj,"uri",info.cur_uri);
+      CallOnComplete(resObj);
+    }else{
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
+    }
+  }
+};
+
+class GetMediaPosition : public QueryWrap{
+public:
+  PLT_PositionInfo info;
+private:
+  void ThreadTask(){
+    Position_data playInfo;
+    playInfo.shared_var.SetValue(0);
+    controller->GetPosition(&playInfo);
+    playInfo.shared_var.WaitUntilEquals(1,30000);
+    res = playInfo.res;
+    info = playInfo.info;
+  }
+  void After(){ 
+    NPT_LOG_INFO("After get position");
+    if(NPT_SUCCEEDED(res)){
+      Local<Object> resObj = Object::New();
+      resObj->Set(String::New("position"), Number::New(info.rel_time.ToMillis()));
+      resObj->Set(String::New("duration"), Number::New(info.track_duration.ToMillis()));
       CallOnComplete(resObj);
     }else{
       CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
@@ -614,6 +643,34 @@ private:
 		}
 	}
 };
+
+
+class SetPosition : public QueryWrap{
+private:
+  NPT_String target;
+
+  void SetupBaton(const Arguments& args){
+    target = *String::AsciiValue(args[1]);
+  }
+  void ThreadTask(){
+    PLT_BrowseData playInfo;
+    playInfo.shared_var.SetValue(0);
+    if(NPT_SUCCEEDED(controller->SetPosition(&playInfo,target))){
+      playInfo.shared_var.WaitUntilEquals(1,30000);
+      res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
+  }
+  void After(){ 
+    NPT_LOG_INFO("After set position");
+    if(NPT_SUCCEEDED(res))
+      CallOnComplete(Local<Boolean>::New(Boolean::New(true)));
+    else
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
+  }
+};
+
 
 class BrowseDirectory : public QueryWrap{
 private:

@@ -365,6 +365,34 @@ Media_Finder::StopTrack(PLT_BrowseData* status)
 }
 
 NPT_Result
+Media_Finder::GetPosition(Position_data* status)
+{
+    PLT_DeviceDataReference device;
+    GetCurMR(device);
+    if (!device.IsNull()) {
+        return GetPositionInfo(device, 0, status);
+    }else if(status != NULL){
+        status->res = -1;
+        status->shared_var.SetValue(1);
+    }
+    return NPT_FAILURE;
+}
+
+NPT_Result
+Media_Finder::SetPosition(PLT_BrowseData* status, NPT_String target)
+{
+    PLT_DeviceDataReference device;
+    GetCurMR(device);
+    if (!device.IsNull()) {
+        return Seek(device, 0,"REL_TIME",target, status);
+    }else if(status != NULL){
+        status->res = -1;
+        status->shared_var.SetValue(1);
+    }
+    return NPT_FAILURE;
+}
+
+NPT_Result
 Media_Finder::GetTrackInfo(Info_data* status)
 {
     PLT_DeviceDataReference device;
@@ -395,7 +423,21 @@ Media_Finder::OnGetMediaInfoResult(NPT_Result               res,
     (*data).shared_var.SetValue(1);
     NPT_LOG_INFO("set data");
 
+};
 
+void 
+Media_Finder::OnGetPositionInfoResult(NPT_Result               res, 
+                               PLT_DeviceDataReference& device,
+                               PLT_PositionInfo*           info,
+                               void*                    userdata)
+{
+    NPT_LOG_FINE("position data received");
+    NPT_COMPILER_UNUSED(device);
+    if (!userdata) return;
+    Position_data* data = (Position_data*) userdata;
+    (*data).res = res;
+    (*data).info = (*info);
+    (*data).shared_var.SetValue(1);
 };
 
 NPT_Result

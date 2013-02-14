@@ -65,6 +65,12 @@ struct Info_data{
     PLT_MediaInfo   info;
 };
 
+struct Position_data{
+    NPT_SharedVariable shared_var;
+    NPT_Result         res;
+    PLT_PositionInfo   info;
+};
+
 struct controllerInfo{
 	NPT_Mutex m_ChangedLock;
 	NPT_SharedVariable hasChanged;
@@ -120,17 +126,34 @@ public:
 	                             PLT_DeviceDataReference& device,  
 	                             void*                    userdata)
 	         {OnCommandResult(res,device,userdata);};
-    void OnGetMediaInfoResult(NPT_Result               res, 
-	                             PLT_DeviceDataReference& device,
-								 PLT_MediaInfo*						info,
-	                             void*                    userdata);
+    void OnSeekResult(
+        NPT_Result                  res,
+        PLT_DeviceDataReference&    device,
+        void*                       userdata) 
+    {
+        OnCommandResult(res,device,userdata);
+    }
 
-    NPT_Result StopTrack(PLT_BrowseData* status);
-	NPT_Result PlayTrack(PLT_BrowseData* status);
-    NPT_Result PauseTrack(PLT_BrowseData* status);
-	NPT_Result Mute(bool value, PLT_BrowseData* status);
-    NPT_Result Volume(int value, PLT_BrowseData* status);
-    NPT_Result GetTrackInfo(Info_data* status);
+    void OnGetMediaInfoResult(
+        NPT_Result                  res, 
+	    PLT_DeviceDataReference&    device,
+		PLT_MediaInfo*			    info,
+	    void*                       userdata);
+
+    void OnGetPositionInfoResult(
+        NPT_Result                  res,
+        PLT_DeviceDataReference&    device,
+        PLT_PositionInfo*           info,
+        void*                       userdata);
+
+    NPT_Result  StopTrack(PLT_BrowseData* status);
+	NPT_Result  PlayTrack(PLT_BrowseData* status);
+    NPT_Result  PauseTrack(PLT_BrowseData* status);
+	NPT_Result  Mute(bool value, PLT_BrowseData* status);
+    NPT_Result  Volume(int value, PLT_BrowseData* status);
+    NPT_Result  GetTrackInfo(Info_data* status);
+    NPT_Result  GetPosition(Position_data* status);
+    NPT_Result  SetPosition(PLT_BrowseData* status, NPT_String target);
 	NPT_Result  DoSearch(NPT_String UUID,const char* object_id,PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
     NPT_Result  DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList);
