@@ -101,6 +101,8 @@ public:
 
     // PLT_MediaBrowserDelegate methods
     bool OnMSAdded(PLT_DeviceDataReference& device);
+    // PLT_MediaBrowserDelegate methods
+    void OnMSRemoved(PLT_DeviceDataReference& device);
 
     // PLT_MediaControllerDelegate methods
     bool OnMRAdded(PLT_DeviceDataReference& device);

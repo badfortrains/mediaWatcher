@@ -156,10 +156,10 @@ Media_Finder::OnMSAdded(PLT_DeviceDataReference& device)
     ServerInfo* server = new ServerInfo;
     server->iconUrl = device->GetIconUrl();
     server->baseUrl = device->GetURLBase().ToString();
-    newEvent->userData = server;
-	newEvent->Name = "serverAdded";
-	newEvent->UUID = device->GetUUID();
-    newEvent->Value = device->GetFriendlyName();
+    newEvent.userData = server;
+	newEvent.Name = "serverAdded";
+	newEvent.UUID = device->GetUUID();
+    newEvent.Value = device->GetFriendlyName();
 	cBaton->m_EventStack.Push(newEvent);
 	cBaton->hasChanged.SetValue(1);
 
@@ -180,11 +180,11 @@ Media_Finder::OnMRAdded(PLT_DeviceDataReference& device)
         NPT_AutoLock lock(m_MediaRenderers);
         m_MediaRenderers.Put(uuid, device);
 				NPT_AutoLock lockEvnt(cBaton->m_EventStack);
-				EventInfo* newEvent = new EventInfo;
-				newEvent->Name = "rendererAdded";
-				newEvent->UUID = device->GetUUID();
-				newEvent->Value = device->GetFriendlyName();
-				cBaton->m_EventStack.Push(*newEvent);
+				EventInfo newEvent;
+				newEvent.Name = "rendererAdded";
+				newEvent.UUID = device->GetUUID();
+				newEvent.Value = device->GetFriendlyName();
+				cBaton->m_EventStack.Push(newEvent);
 				cBaton->hasChanged.SetValue(1);
     }
     
@@ -203,11 +203,11 @@ Media_Finder::OnMRRemoved(PLT_DeviceDataReference& device)
         NPT_AutoLock lock(m_MediaRenderers);
         m_MediaRenderers.Erase(uuid);
         NPT_AutoLock lockEvnt(cBaton->m_EventStack);
-        EventInfo* newEvent = new EventInfo;
-        newEvent->Name = "rendererRemoved";
-        newEvent->UUID = device->GetUUID();
-        newEvent->Value = device->GetFriendlyName();
-        cBaton->m_EventStack.Push(*newEvent);
+        EventInfo newEvent;
+        newEvent.Name = "rendererRemoved";
+        newEvent.UUID = device->GetUUID();
+        newEvent.Value = device->GetFriendlyName();
+        cBaton->m_EventStack.Push(newEvent);
         cBaton->hasChanged.SetValue(1);
     }
 
@@ -219,6 +219,24 @@ Media_Finder::OnMRRemoved(PLT_DeviceDataReference& device)
             m_CurMediaRenderer = NULL;
         }
     }
+}
+
+/*----------------------------------------------------------------------
+|   Media_Finder::OnMSRemoved
++---------------------------------------------------------------------*/
+void
+Media_Finder::OnMSRemoved(PLT_DeviceDataReference& device)
+{
+    NPT_String uuid = device->GetUUID();
+    NPT_AutoLock lock(m_MediaRenderers);
+    m_MediaRenderers.Erase(uuid);
+    NPT_AutoLock lockEvnt(cBaton->m_EventStack);
+    EventInfo newEvent;
+    newEvent.Name = "serverRemoved";
+    newEvent.UUID = device->GetUUID();
+    newEvent.Value = device->GetFriendlyName();
+    cBaton->m_EventStack.Push(newEvent);
+    cBaton->hasChanged.SetValue(1);
 }
 
 NPT_Result
