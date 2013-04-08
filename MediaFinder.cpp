@@ -81,17 +81,39 @@ Media_Finder::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_Stat
 		while (item) {
 			name = (*item)->GetName();
 			value = (*item)->GetValue();
-			//if(name == "Mute" || name == "Volume" || name == "TransportState"){
-				EventInfo* newEvent = new EventInfo;
-				newEvent->Name = name;
-				newEvent->Value = value;
-				newEvent->UUID = service->GetDevice()->GetUUID();
-				NPT_AutoLock lockEvnt(cBaton->m_EventStack);
-				cBaton->m_EventStack.Push(*newEvent);
-				cBaton->hasChanged.SetValue(1);
-			//}
+			EventInfo* newEvent = new EventInfo;
+			newEvent->Name = name;
+			newEvent->Value = value;
+			newEvent->UUID = service->GetDevice()->GetUUID();
+            newEvent->SourceType = RENDERER;
+			NPT_AutoLock lockEvnt(cBaton->m_EventStack);
+			cBaton->m_EventStack.Push(*newEvent);
+			cBaton->hasChanged.SetValue(1);
 			item++;
 		}
+}
+
+/*----------------------------------------------------------------------
+|   Media_Finder::OnMSStateVariablesChanged
++---------------------------------------------------------------------*/
+void 
+Media_Finder::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
+        NPT_LOG_INFO("SERVICE TYPE ="+ service->GetServiceType());
+        NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
+        NPT_String name, value;
+        while (item) {
+            name = (*item)->GetName();
+            value = (*item)->GetValue();
+            EventInfo* newEvent = new EventInfo;
+            newEvent->Name = name;
+            newEvent->Value = value;
+            newEvent->UUID = service->GetDevice()->GetUUID();
+            newEvent->SourceType = SERVER;
+            NPT_AutoLock lockEvnt(cBaton->m_EventStack);
+            cBaton->m_EventStack.Push(*newEvent);
+            cBaton->hasChanged.SetValue(1);
+            item++;
+        }
 }
 
 
@@ -130,11 +152,15 @@ Media_Finder::OnMSAdded(PLT_DeviceDataReference& device)
 	NPT_AutoLock lockEvnt(cBaton->m_EventStack);
 	cBaton->m_DeviceStack.Push(device->GetUUID());
 
-	EventInfo* newEvent = new EventInfo;
+	EventInfo newEvent;
+    ServerInfo* server = new ServerInfo;
+    server->iconUrl = device->GetIconUrl();
+    server->baseUrl = device->GetURLBase().ToString();
+    newEvent->userData = server;
 	newEvent->Name = "serverAdded";
 	newEvent->UUID = device->GetUUID();
-  newEvent->Value = device->GetFriendlyName();
-	cBaton->m_EventStack.Push(*newEvent);
+    newEvent->Value = device->GetFriendlyName();
+	cBaton->m_EventStack.Push(newEvent);
 	cBaton->hasChanged.SetValue(1);
 
     return true; 

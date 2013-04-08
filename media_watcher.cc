@@ -195,14 +195,23 @@ public:
     MediaWatcher* mw = ObjectWrap::Unwrap<MediaWatcher>(args.This());
     mw->watchInfo->m_EventStack.Lock();
     EventInfo ev;
+
     if(NPT_SUCCEEDED(mw->watchInfo->m_EventStack.Pop(ev))){
 			mw->watchInfo->m_EventStack.Unlock();
 			Local<Object> result = Object::New();
 			NPT_LOG_INFO("HERE");
 			NPT_LOG_INFO(ev.Name);
+      if(ev.Name.Compare("serverAdded") == 0){
+        ServerInfo* server = (ServerInfo*) ev.userData;
+        V8_SET(result,"iconUrl",server->iconUrl);
+        V8_SET(result,"baseUrl",server->baseUrl);
+        V8_SET(result,"nameTest",ev.Name);
+        delete server;
+      }
 		  V8_SET(result,"name",ev.Name);
 			V8_SET(result,"value",ev.Value);
 			V8_SET(result,"uuid",ev.UUID);
+      result->Set(String::New("sourceType"),(ev.SourceType == RENDERER) ? String::New("renderer") : String::New("server"));
 			return scope.Close(result);
     }
     else{
@@ -215,18 +224,17 @@ public:
 
   static Handle<Value> GetServer(const Arguments& args){
     HandleScope scope;
-
     MediaWatcher* mw = ObjectWrap::Unwrap<MediaWatcher>(args.This());
     mw->watchInfo->m_DeviceStack.Lock();
     NPT_String device;
     if(NPT_SUCCEEDED(mw->watchInfo->m_DeviceStack.Pop(device))){
-	mw->watchInfo->m_DeviceStack.Unlock();
-	Handle<String> UUID = String::New((char*)device,device.GetLength());
-	return scope.Close(UUID);
+    	mw->watchInfo->m_DeviceStack.Unlock();
+    	Handle<String> UUID = String::New((char*)device,device.GetLength());
+    	return scope.Close(UUID);
     }
     else{
-	mw->watchInfo->m_DeviceStack.Unlock();
-	return False();//no more devices
+	    mw->watchInfo->m_DeviceStack.Unlock();
+	    return False();//no more devices
     }
   }
 
@@ -320,6 +328,16 @@ protected:
 		if (try_catch.HasCaught()) {
 			FatalException(try_catch);
 		}
+  }
+  void CallOnComplete(Local<Value> arg1,Local<Value> arg2) {
+    HandleScope scope;
+    Local<Value> argv[2] = {arg1,arg2};
+
+    TryCatch try_catch;
+    cb->Call(Context::GetCurrent()->Global(), 1, argv);
+    if (try_catch.HasCaught()) {
+      FatalException(try_catch);
+    }
   }
 
 };
@@ -703,10 +721,10 @@ private:
             ++item;
         }
       }
-      CallOnComplete(dirArray);
+      CallOnComplete(dirArray,String::New(UUID));
     }else{
       NPT_LOG_INFO("fail");
-      CallOnComplete(String::New("fail"));
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
     }
   }
 };

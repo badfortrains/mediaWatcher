@@ -52,11 +52,20 @@ typedef NPT_Map<NPT_String, NPT_String>        PLT_StringMap;
 typedef NPT_Lock<PLT_StringMap>                PLT_LockStringMap;
 typedef NPT_Map<NPT_String, NPT_String>::Entry PLT_StringMapEntry;
 
+enum EventSource {SERVER , RENDERER};
 
 struct EventInfo{
 	NPT_String UUID;
 	NPT_String Name;
 	NPT_String Value;
+    void* userData;
+    EventSource SourceType;
+};
+
+struct ServerInfo{
+    NPT_String iconUrl;
+    NPT_String baseUrl;
+    int test;
 };
 
 struct Info_data{
@@ -97,6 +106,8 @@ public:
     bool OnMRAdded(PLT_DeviceDataReference& device);
     void OnMRRemoved(PLT_DeviceDataReference& device);
     void OnMRStateVariablesChanged(PLT_Service*  service , 
+                                   NPT_List<PLT_StateVariable*>*  vars );
+    void OnMSStateVariablesChanged(PLT_Service*  service , 
                                    NPT_List<PLT_StateVariable*>*  vars );
     void OnSetAVTransportURIResult(NPT_Result               res, 
                                      PLT_DeviceDataReference& device,  
