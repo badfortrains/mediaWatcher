@@ -129,7 +129,7 @@ public:
     baton->request.data = baton;
     //eio_custom(EIO_Watch, EIO_PRI_DEFAULT, EIO_AfterWatch, baton);
     //ev_ref(EV_DEFAULT_UC);
-     uv_queue_work(uv_default_loop(), &baton->request,EIO_Watch, EIO_AfterWatch);
+     uv_queue_work(uv_default_loop(), &baton->request,EIO_Watch, (uv_after_work_cb) EIO_AfterWatch);
 
     return Undefined();
   }
@@ -244,7 +244,7 @@ public:
   {
     HandleScope scope;
     watch_baton_t *baton = static_cast<watch_baton_t *>(req->data);
-    ev_unref(EV_DEFAULT_UC);
+    //ev_unref(EV_DEFAULT_UC);
     baton->mw->Unref();
 
     Local<Value> argv[1];
@@ -293,7 +293,7 @@ public:
 			SetupBaton(args);
 			//eio_custom(QueryWrap::DoTask, EIO_PRI_DEFAULT,QueryWrap::OnFinish, self);
 			//ev_ref(EV_DEFAULT_UC);
-			uv_queue_work(uv_default_loop(), &(request),QueryWrap::DoTask, QueryWrap::OnFinish);
+			uv_queue_work(uv_default_loop(), &(request),QueryWrap::DoTask, (uv_after_work_cb) QueryWrap::OnFinish);
 
 		}
 	}
