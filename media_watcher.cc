@@ -46,8 +46,6 @@ static Handle<Value> Action(const Arguments& args){
 class MediaWatcher: ObjectWrap
 {
 private:
-  int m_count;
-  
   Media_Finder*	controller;
   
 public:
@@ -88,8 +86,7 @@ public:
                 s_ct->GetFunction());
   }
 
-  MediaWatcher() :
-    m_count(0)
+  MediaWatcher()
   {
 
 
@@ -322,7 +319,7 @@ private:
 protected:
   void CallOnComplete(Local<Value> data) {
     HandleScope scope;
-    Local<Value> argv[1] = data;
+    Local<Value> argv[1] = {data};
     TryCatch try_catch;
 		cb->Call(Context::GetCurrent()->Global(), 1, argv);
 		if (try_catch.HasCaught()) {
@@ -588,7 +585,6 @@ private:
 
 class GetTracks : public QueryWrap{
 private:
-	NPT_Array<PLT_MediaItemResource> *resource;
 	NPT_String UUID;
   NPT_String dirID;
 	PLT_MediaObjectListReference tracks;
@@ -750,7 +746,7 @@ private:
 			res = NPT_FAILURE;
 	  }
 	}
-	void After(Local<Value>* argv){
+	void After(){
 	 NPT_LOG_INFO("After opem mext");
 		if(NPT_SUCCEEDED(res))
 			CallOnComplete(String::New("Open Next Succeeded"));
