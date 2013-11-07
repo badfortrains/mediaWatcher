@@ -8,6 +8,6 @@
   "dependencies" :{
     "Platinum" : "git://github.com/badfortrains/Platinum.git"
   },
-  "main" : "./media_watcher.node"
+  "main" : "./media_watcher.node",
   "private": true
 }

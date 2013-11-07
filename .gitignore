@@ -4,3 +4,4 @@ Neptune.h
 *.o
 *.node
 build/
+node_modules/
