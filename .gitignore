@@ -2,4 +2,5 @@ Neptune.h
 .DS_Store
 *.a
 *.o
+*.node
 build/
