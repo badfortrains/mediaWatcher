@@ -1,0 +1,8 @@
+{
+  "name": "mediaWatcher",
+  "version" : "0.0.1",
+  "scripts": {
+    "preinstall" : "./build.sh"
+  },
+  "private": true
+}
