@@ -2,7 +2,11 @@
   "name": "mediaWatcher",
   "version" : "0.0.1",
   "scripts": {
-    "preinstall" : "./build.sh"
+    "preinstall"  : "",
+    "install" : "./build.sh"
+  },
+  "dependencies" :{
+    "Platinum" : "git://github.com/badfortrains/Platinum.git"
   },
   "private": true
 }

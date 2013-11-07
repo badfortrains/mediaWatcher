@@ -11,13 +11,13 @@
       'include_dirs': [
           '/',
           '../',
-          './Platinum/Platinum/Source/Platinum',
-          './Platinum/Platinum/Source/Core', 
-          './Platinum/Platinum/Source/../../Neptune/Source/Core',
-          './Platinum/Platinum/Source/Devices/MediaServer',
-          './Platinum/Platinum/Source/Devices/MediaRenderer',
-          './Platinum/Platinum/Source/Devices/MediaConnect',
-          './Platinum/Platinum/Source/Extras'
+          './node_modules/Platinum/Platinum/Source/Platinum',
+          './node_modules/Platinum/Platinum/Source/Core', 
+          './node_modules/Platinum/Platinum/Source/../../Neptune/Source/Core',
+          './node_modules/Platinum/Platinum/Source/Devices/MediaServer',
+          './node_modules/Platinum/Platinum/Source/Devices/MediaRenderer',
+          './node_modules/Platinum/Platinum/Source/Devices/MediaConnect',
+          './node_modules/Platinum/Platinum/Source/Extras'
       ],
     }
   ]
