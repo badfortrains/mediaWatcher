@@ -10,7 +10,7 @@ def build(bld):
   obj = bld.new_task_gen("cxx", "shlib", "node_addon")
   obj.libpath = ['../']
   obj.lib = ['Zlib','Micro','Platinum','Neptune','pthread','PltMediaRenderer','PltMediaConnect','PltMediaServer','axTLS']
-  obj.includes = '../../Platinum ../../Core ../../../../Neptune/Source/Core ../../Devices/MediaServer ../../Devices/MediaRenderer ../../Devices/MediaConnect ../../Extras'
+  obj.includes = '../Platinum/Platinum/Source/Platinum ../Platinum/Platinum/Source/Core ../Platinum/Platinum/Source/../../Neptune/Source/Core ../Platinum/Platinum/Source/Devices/MediaServer ../Platinum/Platinum/Source/Devices/MediaRenderer ../Platinum/Platinum/Source/Devices/MediaConnect ../Platinum/Platinum/Source/Extras'
   print(obj.includes)
   obj.cxxflags = ["-g", "-D_FILE_OFFSET_BITS=64", "-D_LARGEFILE_SOURCE", "-Wall"]
   obj.target = "media_watcher"
