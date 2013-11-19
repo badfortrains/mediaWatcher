@@ -625,19 +625,22 @@ private:
 			NPT_List<PLT_MediaObject*>::Iterator lastItem;
 			while (item) {
 				Local<Object> temp = Object::New();
-		 		temp->Set(String::New("Resources"),wrapResources(&(*item)->m_Resources));
-			  V8_SET(temp,"Didl",(*item)->m_Didl);
-				V8_SET(temp,"Title",(*item)->m_Title);
-        NPT_List<PLT_PersonRole>::Iterator person = (*item)->m_People.artists.GetFirstItem();
-        if(person){
-				  V8_SET(temp,"Artist",(*item)->m_People.artists.GetFirstItem()->name);
-        }else{
-          temp->Set(String::New("Artist"),String::New("unknown"));
+
+        if(!(*item)->IsContainer()){
+          temp->Set(String::New("Resources"),wrapResources(&(*item)->m_Resources));
+          V8_SET(temp,"Didl",(*item)->m_Didl);
+          V8_SET(temp,"Title",(*item)->m_Title);
+          NPT_List<PLT_PersonRole>::Iterator person = (*item)->m_People.artists.GetFirstItem();
+          if(person){
+            V8_SET(temp,"Artist",(*item)->m_People.artists.GetFirstItem()->name);
+          }else{
+            temp->Set(String::New("Artist"),String::New("unknown"));
+          }
+          V8_SET(temp,"Album",(*item)->m_Affiliation.album);
+          temp->Set(String::New("TrackNumber"),Integer::New((*item)->m_MiscInfo.original_track_number));
         }
-				V8_SET(temp,"Album",(*item)->m_Affiliation.album);
-				temp->Set(String::New("TrackNumber"),Integer::New((*item)->m_MiscInfo.original_track_number));
-				
-        //temp->Set(String::New("TrackNumber"),Str::New((*item)->m_ObjectID));
+
+        temp->Set(String::New("isContainer"),Boolean::New((*item)->IsContainer()));  
 				V8_SET(temp,"oID",(*item)->m_ObjectID);
 
 		 		//add a copy of the temp object into our array
