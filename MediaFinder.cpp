@@ -477,10 +477,16 @@ Media_Finder::OnGetPositionInfoResult(NPT_Result               res,
 {
     NPT_LOG_FINE("position data received");
     NPT_COMPILER_UNUSED(device);
-    if (!userdata) return;
+    if (!userdata)
+        return;
+
     Position_data* data = (Position_data*) userdata;
     (*data).res = res;
-    (*data).info = (*info);
+
+    if(NPT_SUCCEEDED(res)){
+        (*data).info = (*info);
+    }
+    
     (*data).shared_var.SetValue(1);
 };
 
