@@ -409,6 +409,37 @@ Media_Finder::StopTrack(PLT_BrowseData* status)
 }
 
 NPT_Result
+Media_Finder::GetTransportInfo(Transport_data* status)
+{
+    PLT_DeviceDataReference device;
+    GetCurMR(device);
+    if (!device.IsNull()) {
+        return PLT_MediaController::GetTransportInfo(device, 0, status);
+    }else if(status != NULL){
+        status->res = -1;
+        status->shared_var.SetValue(1);
+    }
+    return NPT_FAILURE;
+}
+
+void 
+Media_Finder::OnGetTransportInfoResult(NPT_Result               res, 
+                                 PLT_DeviceDataReference& device,
+                                 PLT_TransportInfo*           info,
+                                 void*                    userdata)
+{    
+    NPT_COMPILER_UNUSED(device);
+    if (!userdata) return;
+    Transport_data* data = (Transport_data*) userdata;
+    (*data).res = res;
+    (*data).info = (*info);
+    (*data).shared_var.SetValue(1);
+    NPT_LOG_INFO("set data");
+
+};
+
+
+NPT_Result
 Media_Finder::GetPosition(Position_data* status)
 {
     PLT_DeviceDataReference device;

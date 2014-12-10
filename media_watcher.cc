@@ -34,6 +34,8 @@ class Pause;
 class BrowseDirectory;
 class GetMediaPosition;
 class SetPosition;
+class SetVolume;
+class GetTransportInfo;
 
 template <class Wrap>
 static Handle<Value> Action(const Arguments& args){
@@ -81,6 +83,8 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "play", Action<Play>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "open", Action<Open>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "openNext", Action<OpenNext>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "setVolume", Action<SetVolume>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "getTransportInfo", Action<GetTransportInfo>);
 
     target->Set(String::NewSymbol("MediaWatcher"),
                 s_ct->GetFunction());
@@ -555,6 +559,33 @@ private:
       CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
     }
   }
+};
+
+class GetTransportInfo : public QueryWrap{
+public:
+   PLT_TransportInfo info;
+private:
+  void ThreadTask(){
+    Transport_data stateInfo;
+    stateInfo.shared_var.SetValue(0);
+    controller->GetTransportInfo(&stateInfo);
+    stateInfo.shared_var.WaitUntilEquals(1,30000);
+    res = stateInfo.res;
+    info = stateInfo.info;
+  }
+
+  void After(){
+    NPT_LOG_INFO("After get Transport info");
+    if(NPT_SUCCEEDED(res)){
+      Local<Object> resObj = Object::New();
+      resObj->Set(String::New("transportState"), String::New(info.cur_transport_state,info.cur_transport_state.GetLength() ));
+      resObj->Set(String::New("transportStatus"), String::New(info.cur_transport_status,info.cur_transport_status.GetLength() ));
+      CallOnComplete(resObj);
+    }else{
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
+    } 
+  }
+
 };
 
 class GetMediaPosition : public QueryWrap{

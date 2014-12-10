@@ -80,6 +80,12 @@ struct Position_data{
     PLT_PositionInfo   info;
 };
 
+struct Transport_data{
+    NPT_SharedVariable shared_var;
+    NPT_Result         res;
+    PLT_TransportInfo   info;
+};
+
 struct controllerInfo{
 	NPT_Mutex m_ChangedLock;
 	NPT_SharedVariable hasChanged;
@@ -159,6 +165,12 @@ public:
         PLT_PositionInfo*           info,
         void*                       userdata);
 
+    void OnGetTransportInfoResult(
+        NPT_Result                  res,
+        PLT_DeviceDataReference&    device,
+        PLT_TransportInfo*           info,
+        void*                       userdata);
+
     NPT_Result  StopTrack(PLT_BrowseData* status);
 	NPT_Result  PlayTrack(PLT_BrowseData* status);
     NPT_Result  PauseTrack(PLT_BrowseData* status);
@@ -172,6 +184,7 @@ public:
     NPT_Result  DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenNextTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
 	NPT_Result	SetMR(NPT_String UUID);
+    NPT_Result  GetTransportInfo(Transport_data* status);
 	PLT_DeviceMap GetMRs();
 
 
