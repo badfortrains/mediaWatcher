@@ -395,6 +395,20 @@ Media_Finder::PauseTrack(PLT_BrowseData* status)
 }
 
 NPT_Result
+Media_Finder::NextTrack(PLT_BrowseData* status)
+{
+    PLT_DeviceDataReference device;
+    GetCurMR(device);
+    if (!device.IsNull()) {
+        return Next(device, 0, status);
+    }else{
+                status->res = -1;
+                status->shared_var.SetValue(1);
+        }
+    return NPT_FAILURE;
+}
+
+NPT_Result
 Media_Finder::StopTrack(PLT_BrowseData* status)
 {
     PLT_DeviceDataReference device;

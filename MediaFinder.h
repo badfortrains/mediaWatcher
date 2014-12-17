@@ -121,10 +121,11 @@ public:
                                      PLT_DeviceDataReference& device,  
                                      void*                    userdata)
 		{OnCommandResult(res,device,userdata);};
-    void OnSetNextAVTransportURIResult(NPT_Result               res, 
+    void OnNextResult(NPT_Result               res, 
                                      PLT_DeviceDataReference& device,  
                                      void*                    userdata)
-		{OnCommandResult(res,device,userdata);};
+        {OnCommandResult(res,device,userdata);};
+
     void OnStopResult(NPT_Result               res, 
                                      PLT_DeviceDataReference& device,  
                                      void*                    userdata)
@@ -171,6 +172,7 @@ public:
         PLT_TransportInfo*           info,
         void*                       userdata);
 
+    NPT_Result  NextTrack(PLT_BrowseData* status);
     NPT_Result  StopTrack(PLT_BrowseData* status);
 	NPT_Result  PlayTrack(PLT_BrowseData* status);
     NPT_Result  PauseTrack(PLT_BrowseData* status);

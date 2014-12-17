@@ -36,6 +36,7 @@ class GetMediaPosition;
 class SetPosition;
 class SetVolume;
 class GetTransportInfo;
+class Next;
 
 template <class Wrap>
 static Handle<Value> Action(const Arguments& args){
@@ -80,11 +81,13 @@ public:
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getPosition", Action<GetMediaPosition>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "stop", Action<Stop>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "pause", Action<Pause>);
+    NODE_SET_PROTOTYPE_METHOD(s_ct, "next", Action<Next>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "play", Action<Play>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "open", Action<Open>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "openNext", Action<OpenNext>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "setVolume", Action<SetVolume>);
     NODE_SET_PROTOTYPE_METHOD(s_ct, "getTransportInfo", Action<GetTransportInfo>);
+    
 
     target->Set(String::NewSymbol("MediaWatcher"),
                 s_ct->GetFunction());
@@ -353,6 +356,25 @@ private:
 		NPT_LOG_INFO("Event triggered");
 		CallOnComplete(String::New("EVENT"));
 	}
+};
+
+class Next : public QueryWrap{
+  void ThreadTask(){
+    PLT_BrowseData playInfo;
+    playInfo.shared_var.SetValue(0);
+    if(NPT_SUCCEEDED(controller->NextTrack(&playInfo))){
+      playInfo.shared_var.WaitUntilEquals(1);
+      res = playInfo.res;
+    }else{
+      res = NPT_FAILURE;
+    }
+  }
+  void After(){ 
+    if(NPT_SUCCEEDED(res))
+      CallOnComplete(Local<Boolean>::New(Boolean::New(true)));
+    else
+      CallOnComplete(Local<Boolean>::New(Boolean::New(false)));
+  }
 };
 
 
@@ -759,14 +781,24 @@ private:
   }
 };
 
+
 class OpenNext : public QueryWrap{
 private:
 	NPT_Array<PLT_MediaItemResource> *resource;
 	NPT_String* Didl;
 	void SetupBaton(const Arguments& args){
-		Local<Object> track = args[1]->ToObject();
-		resource = (NPT_Array<PLT_MediaItemResource>*) track->GetPointerFromInternalField(0);
-		Didl = (NPT_String*) track->GetPointerFromInternalField(1);
+
+    Local<Object> track = args[1]->ToObject();
+    Local<Array> resArray = Local<Array>::Cast(track->Get(String::New("Resources")));
+    resource = new NPT_Array<PLT_MediaItemResource>(resArray->Length());
+    for(unsigned int i=0; i < resArray->Length(); i++){
+      PLT_MediaItemResource* curRes = new PLT_MediaItemResource();
+      curRes->m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("Uri")));
+      curRes->m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("ProtocolInfo")));
+      resource->Add(*curRes);
+    }
+    Didl = new NPT_String(*String::AsciiValue(track->Get(String::New("Didl"))));
+    NPT_String didl2 = *String::AsciiValue(track->Get(String::New("Didl")));
 	}
 
 	void ThreadTask(){ 
@@ -774,7 +806,8 @@ private:
 		PLT_BrowseData playInfo;
 	  playInfo.shared_var.SetValue(0);
 		if(NPT_SUCCEEDED(controller->OpenNextTrack(*resource, *Didl, &playInfo))){
-			playInfo.shared_var.WaitUntilEquals(1);
+			//playInfo.shared_var.WaitUntilEquals(1);
+      //don't wait, since there is no callback for open next in mediacontroller
       res = playInfo.res;
     }else{
 			res = NPT_FAILURE;
