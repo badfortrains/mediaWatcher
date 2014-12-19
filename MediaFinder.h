@@ -184,7 +184,7 @@ public:
 	NPT_Result  DoSearch(NPT_String UUID,const char* object_id,PLT_MediaObjectListReference& resultList);
 	NPT_Result  OpenTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
     NPT_Result  DoBrowse(NPT_String UUID,const char* object_id, PLT_MediaObjectListReference& resultList);
-	NPT_Result  OpenNextTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl, PLT_BrowseData* status);
+	NPT_Result  OpenNextTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String &Didl, PLT_BrowseData* status);
 	NPT_Result	SetMR(NPT_String UUID);
     NPT_Result  GetTransportInfo(Transport_data* status);
 	PLT_DeviceMap GetMRs();

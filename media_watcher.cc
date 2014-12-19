@@ -522,21 +522,23 @@ class Open : public QueryWrap{
 private:
 	NPT_Array<PLT_MediaItemResource> *resource;
 	NPT_String* Didl;
+  ~Open(){
+    delete resource;
+    delete Didl;
+  }
+
 	void SetupBaton(const Arguments& args){
 		NPT_LOG_INFO("start open");
 		Local<Object> track = args[1]->ToObject();
 		Local<Array> resArray = Local<Array>::Cast(track->Get(String::New("Resources")));
 		resource = new NPT_Array<PLT_MediaItemResource>(resArray->Length());
 		for(unsigned int i=0; i < resArray->Length(); i++){
-			PLT_MediaItemResource* curRes = new PLT_MediaItemResource();
-			curRes->m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("Uri")));
-			curRes->m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("ProtocolInfo")));
-			resource->Add(*curRes);
+			PLT_MediaItemResource curRes;
+			curRes.m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("Uri")));
+			curRes.m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("ProtocolInfo")));
+			resource->Add(curRes);
 		}
 		Didl = new NPT_String(*String::AsciiValue(track->Get(String::New("Didl"))));
-    NPT_String didl2 = *String::AsciiValue(track->Get(String::New("Didl")));
-		NPT_LOG_INFO_1("Didl = %s",(char*)(*Didl));
-		NPT_LOG_INFO("all set");
 	}
 	void ThreadTask(){ 
 		PLT_BrowseData playInfo;
@@ -786,19 +788,24 @@ class OpenNext : public QueryWrap{
 private:
 	NPT_Array<PLT_MediaItemResource> *resource;
 	NPT_String* Didl;
+
+  ~OpenNext(){
+    delete resource;
+    delete Didl;
+  }
+
 	void SetupBaton(const Arguments& args){
 
     Local<Object> track = args[1]->ToObject();
     Local<Array> resArray = Local<Array>::Cast(track->Get(String::New("Resources")));
     resource = new NPT_Array<PLT_MediaItemResource>(resArray->Length());
     for(unsigned int i=0; i < resArray->Length(); i++){
-      PLT_MediaItemResource* curRes = new PLT_MediaItemResource();
-      curRes->m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("Uri")));
-      curRes->m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("ProtocolInfo")));
-      resource->Add(*curRes);
+      PLT_MediaItemResource curRes;
+      curRes.m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("Uri")));
+      curRes.m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(String::New("ProtocolInfo")));
+      resource->Add(curRes);
     }
     Didl = new NPT_String(*String::AsciiValue(track->Get(String::New("Didl"))));
-    NPT_String didl2 = *String::AsciiValue(track->Get(String::New("Didl")));
 	}
 
 	void ThreadTask(){ 

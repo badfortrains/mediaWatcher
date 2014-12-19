@@ -81,13 +81,13 @@ Media_Finder::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_Stat
 		while (item) {
 			name = (*item)->GetName();
 			value = (*item)->GetValue();
-			EventInfo* newEvent = new EventInfo;
-			newEvent->Name = name;
-			newEvent->Value = value;
-			newEvent->UUID = service->GetDevice()->GetUUID();
-            newEvent->SourceType = RENDERER;
+			EventInfo newEvent;
+			newEvent.Name = name;
+			newEvent.Value = value;
+			newEvent.UUID = service->GetDevice()->GetUUID();
+            newEvent.SourceType = RENDERER;
 			NPT_AutoLock lockEvnt(cBaton->m_EventStack);
-			cBaton->m_EventStack.Push(*newEvent);
+			cBaton->m_EventStack.Push(newEvent);
 			cBaton->hasChanged.SetValue(1);
 			item++;
 		}
@@ -104,13 +104,13 @@ Media_Finder::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_Stat
         while (item) {
             name = (*item)->GetName();
             value = (*item)->GetValue();
-            EventInfo* newEvent = new EventInfo;
-            newEvent->Name = name;
-            newEvent->Value = value;
-            newEvent->UUID = service->GetDevice()->GetUUID();
-            newEvent->SourceType = SERVER;
+            EventInfo newEvent;
+            newEvent.Name = name;
+            newEvent.Value = value;
+            newEvent.UUID = service->GetDevice()->GetUUID();
+            newEvent.SourceType = SERVER;
             NPT_AutoLock lockEvnt(cBaton->m_EventStack);
-            cBaton->m_EventStack.Push(*newEvent);
+            cBaton->m_EventStack.Push(newEvent);
             cBaton->hasChanged.SetValue(1);
             item++;
         }
@@ -550,7 +550,7 @@ Media_Finder::PlayTrack(PLT_BrowseData* status)
 }
 
 NPT_Result
-Media_Finder::OpenNextTrack(NPT_Array<PLT_MediaItemResource> Resources,NPT_String Didl,PLT_BrowseData* status){
+Media_Finder::OpenNextTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String &Didl,PLT_BrowseData* status){
 	NPT_Result res = NPT_FAILURE;
 	PLT_DeviceDataReference device;
 	
