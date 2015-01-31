@@ -2,6 +2,7 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND. See the accompanying 
  * LICENSE file.
  */
+#include <nan.h>
 
 #include <v8.h>
 #include <node.h>
@@ -699,7 +700,7 @@ private:
 				V8_SET(temp,"oID",(*item)->m_ObjectID);
 
 		 		//add a copy of the temp object into our array
-		 		trackArray->Set(i,temp->Clone());
+		 		trackArray->Set(i,temp);
 		 
 		 		lastItem = item;
 		    ++item;

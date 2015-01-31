@@ -1,8 +1,8 @@
 {
   "targets": [
     {
-      "target_name": "media_watcher",
-      "sources": [ "media_watcher.cc" ],
+      "target_name": "watcher",
+      "sources": [ "watcher.cc","MediaController.cc", "Actions.cc" ],
       'link_settings': {
         'libraries': [
               '../libZlib.a','../libMicro.a','../libPlatinum.a','../libNeptune.a','-lpthread','../libPltMediaRenderer.a','../libPltMediaConnect.a','../libPltMediaServer.a','../libaxTLS.a'
@@ -17,7 +17,8 @@
           './node_modules/Platinum/Platinum/Source/Devices/MediaServer',
           './node_modules/Platinum/Platinum/Source/Devices/MediaRenderer',
           './node_modules/Platinum/Platinum/Source/Devices/MediaConnect',
-          './node_modules/Platinum/Platinum/Source/Extras'
+          './node_modules/Platinum/Platinum/Source/Extras',
+          "<!(node -e \"require('nan')\")"
       ],
     }
   ]
