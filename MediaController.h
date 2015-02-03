@@ -36,6 +36,7 @@ public:
     void FlushQueue(ObjectWrap *context);
 
     void BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId);
+    void GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId);
 
 protected:
     std::queue<Action*> queue;

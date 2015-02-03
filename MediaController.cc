@@ -44,9 +44,6 @@ MediaController::OnMSAdded(PLT_DeviceDataReference& device)
     queue.push(event);
     uv_async_send(async);
 
-    PLT_DeviceDataReference* device2;
-    (this)->GetMediaServersMap().Get(uuid, device2);
-
     return true; 
 }
 
@@ -111,13 +108,12 @@ public:
         }else{
             Local<Value> argv[] = {
                 NanError("Failed to retrieve directory"),
-                NanNew<String>(uuid),
-                NanNew<String>(objectId)
             };
-            callback->Call(3, argv);
+            callback->Call(1, argv);
         }
     }
-private:
+
+protected:
     NPT_Result res;
     NPT_String uuid;
     NPT_String objectId;
@@ -125,9 +121,78 @@ private:
     MediaController* mc;
 };
 
+class GetTracksAction : public BrowseAction{
+public:
+    GetTracksAction(NanCallback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
+    : BrowseAction(callback,uuid,objectId,mc) {}
+    ~GetTracksAction() {}
+
+
+    Handle<Array> wrapResources(NPT_Array<PLT_MediaItemResource>* m_Resources){
+        NanEscapableScope();
+        Local<Array> resArray = Array::New((int)m_Resources->GetItemCount());
+        for (NPT_Cardinal u=0; u<m_Resources->GetItemCount(); u++) {
+            Local<Object> resObj = Object::New();
+            NPT_String protocol = (*m_Resources)[u].m_ProtocolInfo.ToString();
+            resObj->Set(NanNew("ProtocolInfo"),NanNew<String>(protocol));
+            resObj->Set(NanNew("Uri"),NanNew<String>((*m_Resources)[u].m_Uri));
+            resArray->Set(NanNew<Integer>(u),resObj);
+        }
+        return NanEscapeScope(resArray);
+    }
+    void HandleOKCallback(){
+        NanScope();
+        if(NPT_SUCCEEDED(res)){
+            Local<Array> trackArray = Array::New((int)resultList->GetItemCount());
+            int i =0;
+            NPT_List<PLT_MediaObject*>::Iterator item = resultList->GetFirstItem();
+            while (item) {
+                Local<Object> temp = Object::New();
+                if(!(*item)->IsContainer()){
+                    temp->Set(NanNew("Resources"),wrapResources(&(*item)->m_Resources));
+                    temp->Set(NanNew("Didl"),NanNew<String>((*item)->m_Didl));
+                    temp->Set(NanNew("Title"),NanNew<String>((*item)->m_Title));
+                    temp->Set(NanNew("Album"),NanNew<String>((*item)->m_Affiliation.album));
+                    temp->Set(NanNew("TrackNumber"),NanNew<Integer>((*item)->m_MiscInfo.original_track_number));
+
+                    NPT_List<PLT_PersonRole>::Iterator person = (*item)->m_People.artists.GetFirstItem();
+                    if(person){
+                        temp->Set(NanNew("Artist"),NanNew<String>((*item)->m_People.artists.GetFirstItem()->name));
+                    }else{
+                        temp->Set(NanNew("Artist"),NanNew("unknown"));
+                    }
+                }
+
+                temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));  
+                temp->Set(NanNew("oID"),NanNew<String>((*item)->m_ObjectID));
+                trackArray->Set(i,temp);
+
+                ++item;
+                i++;
+            }
+            Local<Value> argv[] = {
+                NanNull()
+              , trackArray
+            };
+            callback->Call(2, argv);
+        }else{
+            Local<Value> argv[] = {
+                NanError("Failed to retrieve directory"),
+            };
+            callback->Call(1, argv);
+        }
+    }
+
+};
+
 void 
 MediaController::BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId){
     NanAsyncQueueWorker(new BrowseAction(callback, uuid, objectId,this));
+}
+
+void 
+MediaController::GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId){
+    NanAsyncQueueWorker(new GetTracksAction(callback, uuid, objectId,this));
 }
 
 PLT_DeviceDataReference

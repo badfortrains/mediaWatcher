@@ -19,6 +19,7 @@ void Watcher::Init(Handle<Object> target){
     Watcher::upnp.Start();
 
     NODE_SET_PROTOTYPE_METHOD(t, "browse", Browse);
+    NODE_SET_PROTOTYPE_METHOD(t, "getTracks", GetTracks);
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -58,7 +59,27 @@ NAN_METHOD(Watcher::Browse){
     Local<Function> callbackHandle = args[2].As<Function>();
     NanCallback *callback = new NanCallback(callbackHandle);
 
-    watcher->mc->BrowseDirectory(callback,*String::Utf8Value(args[0]),*String::Utf8Value(args[1]));
+    String::Utf8Value uuid(args[0]);
+    String::Utf8Value dir(args[1]);
+
+    watcher->mc->BrowseDirectory(callback,*uuid,*dir);
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::GetTracks){
+    NanScope();
+
+    if (args.Length() < 3) {
+        return NanThrowTypeError("Expected 3 arguments");
+    }
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.This());
+    Local<Function> callbackHandle = args[2].As<Function>();
+    NanCallback *callback = new NanCallback(callbackHandle);
+
+    String::Utf8Value uuid(args[0]);
+    String::Utf8Value dir(args[1]);
+
+    watcher->mc->GetTracks(callback,*uuid,*dir);
     NanReturnUndefined();
 }
 

@@ -33,6 +33,7 @@ protected:
 
 	static NAN_METHOD(New);
 	static NAN_METHOD(Browse);
+	static NAN_METHOD(GetTracks);
 
 };
 

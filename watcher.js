@@ -13,10 +13,13 @@ var mw = new Watcher();
 
 mw.on("serverAdded",function(ev){
 	console.log("serverAdded",ev)
-	mw.browse(ev.uuid,"0",function(){
-		console.log("got results")
-		console.log(arguments)
-	})
+	if(ev.uuid == "7076436f-6e65-1063-8074-4ce6766160b7"){
+		console.log("get tracks")
+		mw.getTracks(ev.uuid,"1$12$1013212283",function(){
+			console.log("got results")
+			console.log(arguments)
+		})
+	}
 })
 
 mw.on("rendererAdded",function(ev){
