@@ -64,6 +64,23 @@ MediaController::OnMRAdded(PLT_DeviceDataReference& device)
     return true; 
 }
 
+void
+MediaController::OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action)
+{
+    if (!action)
+        return;
+
+    GetTrackPositionAction* posAction = (GetTrackPositionAction*) action;
+    if(NPT_SUCCEEDED(res)){
+        posAction->GotResult(*info);
+    }else{
+        posAction->SetError(res);
+    }
+
+    queue.push(posAction);
+    uv_async_send(async);
+}
+
 class BrowseAction : public NanAsyncWorker {
 public:
     BrowseAction(NanCallback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
@@ -193,6 +210,30 @@ MediaController::BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_Stri
 void 
 MediaController::GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId){
     NanAsyncQueueWorker(new GetTracksAction(callback, uuid, objectId,this));
+}
+
+NPT_Result 
+MediaController::SetRenderer(NPT_String uuid)
+{
+    PLT_DeviceDataReference* result;
+    NPT_AutoLock lock(m_CurMediaRendererLock);
+    NPT_AutoLock MRLock(m_MediaRenderers);
+    m_MediaRenderers.Get(uuid, result);
+    if(!result)
+        return NPT_FAILURE;
+    else{
+        m_CurMediaRenderer = *result;
+        return NPT_SUCCESS;
+    }
+}
+
+NPT_Result
+MediaController::GetTrackPosition(Action* action){
+    NPT_AutoLock lock(m_CurMediaRendererLock);
+    if (!m_CurMediaRenderer.IsNull())
+        return GetPositionInfo(m_CurMediaRenderer, 0, action);
+    else
+        return NPT_ERROR_NO_SUCH_ITEM;
 }
 
 PLT_DeviceDataReference

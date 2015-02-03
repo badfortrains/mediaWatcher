@@ -20,6 +20,8 @@ void Watcher::Init(Handle<Object> target){
 
     NODE_SET_PROTOTYPE_METHOD(t, "browse", Browse);
     NODE_SET_PROTOTYPE_METHOD(t, "getTracks", GetTracks);
+    NODE_SET_PROTOTYPE_METHOD(t, "getTrackPosition", GetTrackPosition);
+    NODE_SET_PROTOTYPE_METHOD(t, "setRenderer", SetRenderer);
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -55,7 +57,7 @@ NAN_METHOD(Watcher::Browse){
     if (args.Length() < 3) {
         return NanThrowTypeError("Expected 3 arguments");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.This());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
     Local<Function> callbackHandle = args[2].As<Function>();
     NanCallback *callback = new NanCallback(callbackHandle);
 
@@ -72,7 +74,7 @@ NAN_METHOD(Watcher::GetTracks){
     if (args.Length() < 3) {
         return NanThrowTypeError("Expected 3 arguments");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.This());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
     Local<Function> callbackHandle = args[2].As<Function>();
     NanCallback *callback = new NanCallback(callbackHandle);
 
@@ -80,6 +82,50 @@ NAN_METHOD(Watcher::GetTracks){
     String::Utf8Value dir(args[1]);
 
     watcher->mc->GetTracks(callback,*uuid,*dir);
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::GetTrackPosition){
+    NanScope();
+
+    if( args.Length() < 1 || !args[0]->IsFunction()){
+        return NanThrowTypeError("Expected a callback function");
+    }
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Local<Function> callbackHandle = args[0].As<Function>();
+    NanCallback *callback = new NanCallback(callbackHandle);
+
+    GetTrackPositionAction* action = new GetTrackPositionAction(callback);
+    NPT_Result res = watcher->mc->GetTrackPosition(action);
+
+    if(!NPT_SUCCEEDED(res)){
+        action->ErrorCB(res);
+        delete action;
+    }   
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::SetRenderer){
+    NanScope();
+
+    if( args.Length() < 1 ){
+        return NanThrowTypeError("Expected at least 1 argument (uuid)");
+    }
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    NanCallback *callback;
+    String::Utf8Value uuid(args[0]);
+
+    NPT_Result res = watcher->mc->SetRenderer(*uuid);
+
+    if( args.Length() > 1 && args[1]->IsFunction()){
+        Local<Function> callbackHandle = args[1].As<Function>();
+        Handle<Value> argv[1];
+        if(NPT_SUCCEEDED(res))
+            argv[0] = NanNull();
+        else
+            argv[0] = NanError("Renderer not found");
+        callbackHandle->Call(Context::GetCurrent()->Global(),1, argv); 
+    }
     NanReturnUndefined();
 }
 

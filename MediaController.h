@@ -28,15 +28,18 @@ public:
 	virtual ~MediaController(){};
     // PLT_MediaBrowserDelegate methods
     bool OnMSAdded(PLT_DeviceDataReference& device);
-
     // PLT_MediaControllerDelegate methods
     bool OnMRAdded(PLT_DeviceDataReference& device);
+    void OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action);
+
 
     //Only use on main chrome thread!
     void FlushQueue(ObjectWrap *context);
 
     void BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId);
     void GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId);
+    NPT_Result GetTrackPosition(Action* action);
+    NPT_Result SetRenderer(NPT_String uuid);
 
 protected:
     std::queue<Action*> queue;

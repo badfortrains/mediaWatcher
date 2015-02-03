@@ -5,6 +5,7 @@
 #include <queue>
 #include "Platinum.h"
 #include <node.h>
+#include <nan.h>
 
 using namespace node;
 
@@ -23,6 +24,36 @@ class Action{
 public:
     virtual void EmitAction(ObjectWrap *context) = 0;
     virtual ~Action(){};
+
+};
+
+class CBAction : public Action{
+public:
+    CBAction(NanCallback *callback) : callback(callback){};
+    virtual ~CBAction();
+
+    void EmitAction(ObjectWrap *context);
+    void SetError(NPT_Result err);
+
+    virtual void ErrorCB(NPT_Result err);
+    virtual void SuccessCB() = 0;
+
+
+
+protected:
+    NanCallback *callback;
+    NPT_Result res;
+};
+
+class GetTrackPositionAction : public CBAction{
+public:
+    GetTrackPositionAction(NanCallback *callback) : CBAction(callback){};
+    virtual ~GetTrackPositionAction(){};
+    void GotResult(PLT_PositionInfo positionInfo);
+    void SuccessCB();
+
+private:
+    PLT_PositionInfo info;
 };
 
 class DeviceAction : public Action{
