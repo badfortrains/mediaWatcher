@@ -37,6 +37,7 @@ protected:
 	static NAN_METHOD(GetTrackPosition);
 	static NAN_METHOD(SetRenderer);
 	static NAN_METHOD(OpenTrack);
+	static NAN_METHOD(OpenNextTrack);
 
 };
 

@@ -39,6 +39,7 @@ public:
     void BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId);
     void GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId);
     NPT_Result OpenTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String& Didl,Action* action);
+    NPT_Result OpenNextTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String& Didl,Action* action);
     NPT_Result GetTrackPosition(Action* action);
     NPT_Result SetRenderer(NPT_String uuid);
 

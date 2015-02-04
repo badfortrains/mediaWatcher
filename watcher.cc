@@ -23,6 +23,7 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "getTrackPosition", GetTrackPosition);
     NODE_SET_PROTOTYPE_METHOD(t, "setRenderer", SetRenderer);
     NODE_SET_PROTOTYPE_METHOD(t, "openTrack", OpenTrack);
+    NODE_SET_PROTOTYPE_METHOD(t, "openNextTrack", OpenTrack);
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -159,6 +160,43 @@ NAN_METHOD(Watcher::OpenTrack){
     NPT_String didl(*String::AsciiValue(track->Get(NanNew("Didl"))));
 
     NPT_Result res = watcher->mc->OpenTrack(resource,didl,action);
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::OpenNextTrack){
+    NanScope();
+
+    if( args.Length() < 1 ){
+        return NanThrowTypeError("Expected at least 1 argument (track object)");
+    }
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    if( args.Length() > 1 && args[1]->IsFunction()){
+        Local<Function> callbackHandle = args[1].As<Function>();
+        NanCallback *callback = new NanCallback(callbackHandle);
+        action = new CBAction(callback);
+    }
+
+
+    Local<Object> track = args[0]->ToObject();
+    Local<Array> resArray = Local<Array>::Cast(track->Get(NanNew("Resources")));
+    NPT_Array<PLT_MediaItemResource> resource(resArray->Length());
+
+    for(unsigned int i=0; i < resArray->Length(); i++){
+        PLT_MediaItemResource curRes;
+        curRes.m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
+        curRes.m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
+        resource.Add(curRes);
+    }
+    NPT_String didl(*String::AsciiValue(track->Get(NanNew("Didl"))));
+
+    NPT_Result res = watcher->mc->OpenNextTrack(resource,didl,action);
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
