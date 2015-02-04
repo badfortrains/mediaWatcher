@@ -74,3 +74,22 @@ GetTrackPositionAction::SuccessCB(){
     };
     callback->Call(2, argv);
 }
+
+StateVariableAction::StateVariableAction(PLT_Service* service, PLT_StateVariable* var, EventSource sourceType){
+    name = var->GetName();
+    value = var->GetValue();
+    uuid = service->GetDevice()->GetUUID();
+    sourceType = sourceType;
+}
+
+void
+StateVariableAction::EmitAction(ObjectWrap* context){
+    Local<Object> event = Object::New();
+    event->Set(NanNew("name"),NanNew<String>(name));
+    event->Set(NanNew("value"),NanNew<String>(value));
+    event->Set(NanNew("uuid"),NanNew<String>(uuid));
+    event->Set(NanNew("sourceType"),sourceType == RENDERER ? NanNew("renderer") : NanNew("server"));
+
+    Local<Value> args[] = { NanNew("stateChange"),event };
+    EMIT_EVENT(NanObjectWrapHandle(context), 2, args);
+}

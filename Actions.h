@@ -19,6 +19,7 @@ using namespace node;
     );
 
 
+enum EventSource {SERVER , RENDERER};
 
 class Action{
 public:
@@ -64,6 +65,18 @@ public:
     NPT_String baseUrl;
     NPT_String deviceName;
     NPT_String eventName;
+};
+
+class StateVariableAction : public Action{
+public:
+    StateVariableAction(PLT_Service*  service,PLT_StateVariable* var, EventSource sourceType);
+    virtual ~StateVariableAction(){};
+    void EmitAction(ObjectWrap *context);
+protected:
+    NPT_String name;
+    NPT_String value;
+    NPT_String uuid;
+    EventSource sourceType;
 };
 
 #endif

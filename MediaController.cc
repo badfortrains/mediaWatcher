@@ -12,11 +12,20 @@ MediaController::MediaController(PLT_CtrlPointReference& ctrlPoint, uv_async_t* 
 void
 MediaController::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
 
+    NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
+    while (item) {
+        queue.push(new StateVariableAction(service,*item,RENDERER));
+    }
+    uv_async_send(async);
 }
 
 void
 MediaController::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
-
+    NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
+    while (item) {
+        queue.push(new StateVariableAction(service,*item,SERVER));
+    }
+    uv_async_send(async);
 }
 
 bool 
