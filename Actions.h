@@ -33,12 +33,10 @@ public:
     virtual ~CBAction();
 
     void EmitAction(ObjectWrap *context);
-    void SetError(NPT_Result err);
+    void SetResult(NPT_Result err);
 
     virtual void ErrorCB(NPT_Result err);
-    virtual void SuccessCB() = 0;
-
-
+    virtual void SuccessCB();
 
 protected:
     NanCallback *callback;

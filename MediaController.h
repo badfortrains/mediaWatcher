@@ -31,13 +31,14 @@ public:
     // PLT_MediaControllerDelegate methods
     bool OnMRAdded(PLT_DeviceDataReference& device);
     void OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action);
-
+    void OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& device,void* action);
 
     //Only use on main chrome thread!
     void FlushQueue(ObjectWrap *context);
 
     void BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId);
     void GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId);
+    NPT_Result OpenTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String& Didl,Action* action);
     NPT_Result GetTrackPosition(Action* action);
     NPT_Result SetRenderer(NPT_String uuid);
 
@@ -45,6 +46,7 @@ protected:
     std::queue<Action*> queue;
     uv_async_t* async;
 
+    void GetCurMR(PLT_DeviceDataReference& renderer);
     PLT_DeviceDataReference getDeviceReference(NPT_String UUID);
 
 private:

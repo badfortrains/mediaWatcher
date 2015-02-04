@@ -74,10 +74,22 @@ MediaController::OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference
     if(NPT_SUCCEEDED(res)){
         posAction->GotResult(*info);
     }else{
-        posAction->SetError(res);
+        posAction->SetResult(res);
     }
 
     queue.push(posAction);
+    uv_async_send(async);
+}
+
+void
+MediaController::OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& device,void* action){
+    if(!action)
+        return;
+
+    CBAction* cb = (CBAction*) action;
+    cb->SetResult(res);
+
+    queue.push(cb);
     uv_async_send(async);
 }
 
@@ -228,6 +240,31 @@ MediaController::SetRenderer(NPT_String uuid)
 }
 
 NPT_Result
+MediaController::OpenTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_String& Didl,Action* action){
+    NPT_Result res = NPT_FAILURE;
+    PLT_DeviceDataReference device;
+
+    GetCurMR(device);
+    if(!device.IsNull()){
+        if(Resources.GetItemCount() > 0) {
+            // look for best resource to use by matching each resource to a sink advertised by renderer
+            NPT_Cardinal resource_index;
+            PLT_MediaItem temp;
+            temp.m_Resources = Resources;//FindBestResource wants a PLT_MediaItem, so make a temp one and give it our resource array
+            if (NPT_FAILED(FindBestResource(device, temp, resource_index))) {
+                return NPT_ERROR_NOT_SUPPORTED;
+            }
+            // invoke the setUri
+            return SetAVTransportURI(device, 0, Resources[resource_index].m_Uri, Didl,action);
+        } else {
+            NPT_LOG_SEVERE("couldn't find resource");
+            return NPT_ERROR_NO_SUCH_ITEM;
+        }
+    }
+    return res;
+}
+
+NPT_Result
 MediaController::GetTrackPosition(Action* action){
     NPT_AutoLock lock(m_CurMediaRendererLock);
     if (!m_CurMediaRenderer.IsNull())
@@ -235,6 +272,13 @@ MediaController::GetTrackPosition(Action* action){
     else
         return NPT_ERROR_NO_SUCH_ITEM;
 }
+
+void
+MediaController::GetCurMR(PLT_DeviceDataReference& renderer){
+    NPT_AutoLock lock(m_CurMediaRendererLock);
+    renderer = m_CurMediaRenderer;
+}
+
 
 PLT_DeviceDataReference
 MediaController::getDeviceReference(NPT_String UUID){

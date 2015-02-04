@@ -23,7 +23,15 @@ CBAction::EmitAction(ObjectWrap* context){
 }
 
 void
-CBAction::SetError(NPT_Result err){
+CBAction::SuccessCB(){
+    Handle<Value> argv[] = {
+      NanNull()
+    };
+    callback->Call(1, argv);
+}
+
+void
+CBAction::SetResult(NPT_Result err){
     res = err;
 }
 
