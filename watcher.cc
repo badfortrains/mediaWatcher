@@ -30,6 +30,7 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "next", Next);
     NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
     NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
+    NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GerRenderers);
 
 
 
@@ -335,6 +336,28 @@ NAN_METHOD(Watcher::Seek){
         action->ErrorCB(res);
     }
     NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::GerRenderers){
+    NanEscapableScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    PLT_DeviceMap devices = watcher->mc->GetMRs();
+    const NPT_List<PLT_DeviceMapEntry*>& entries = devices.GetEntries();
+    Local<Array> res = Array::New(entries.GetItemCount());
+    NPT_List<PLT_DeviceMapEntry*>::Iterator entry = entries.GetFirstItem();
+    int i =0;
+    while(entry){
+        Local<Object> tempDevice = Object::New();
+        PLT_DeviceDataReference device = (*entry)->GetValue();
+        tempDevice->Set(NanNew("uuid"),NanNew<String>((*entry)->GetKey()));
+        tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
+        res->Set(NanNew<Integer>(i),tempDevice);
+        i++;
+        ++entry;
+    }
+
+    return NanEscapeScope(res);
 }
 
 

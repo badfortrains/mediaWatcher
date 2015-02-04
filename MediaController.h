@@ -60,6 +60,7 @@ public:
     NPT_Result SetRenderer(NPT_String uuid);
 
     void GetCurMR(PLT_DeviceDataReference& renderer);
+    PLT_DeviceMap GetMRs();
 protected:
     std::queue<Action*> queue;
     uv_async_t* async;

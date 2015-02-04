@@ -117,6 +117,15 @@ MediaController::OnMRRemoved(PLT_DeviceDataReference& device)
     uv_async_send(async);
 }
 
+PLT_DeviceMap
+MediaController::GetMRs(){
+    PLT_DeviceMap res;
+    NPT_AutoLock MRLock(m_MediaRenderers);
+    res  = m_MediaRenderers;
+    return res;
+
+}
+
 void
 MediaController::OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action)
 {

@@ -50,11 +50,8 @@ public:
 protected:
     MediaController* mc;
 
-	
-
 	Watcher() : ObjectWrap() {};
 	~Watcher(){};
-
 
 	static NAN_METHOD(New);
 	static NAN_METHOD(Browse);
@@ -69,6 +66,7 @@ protected:
 	static NAN_METHOD(Next);
 	static NAN_METHOD(SetVolume);
 	static NAN_METHOD(Seek);
+	static NAN_METHOD(GerRenderers);
 
 };
 
