@@ -31,6 +31,9 @@ public:
     // PLT_MediaBrowserDelegate methods
     bool OnMSAdded(PLT_DeviceDataReference& device);
     bool OnMRAdded(PLT_DeviceDataReference& device);
+    void OnMRRemoved(PLT_DeviceDataReference& device);
+    void OnMSRemoved(PLT_DeviceDataReference& device);
+
     void OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars);
     void OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars);
 

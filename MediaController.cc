@@ -83,6 +83,41 @@ MediaController::OnMRAdded(PLT_DeviceDataReference& device)
 }
 
 void
+MediaController::OnMSRemoved(PLT_DeviceDataReference& device)
+{
+    NPT_String uuid = device->GetUUID();
+    {
+        NPT_AutoLock lock(m_MediaServers);
+        m_MediaServers.Erase(uuid);
+    }
+
+    queue.push(new DeviceAction("serverRemoved",device));
+    uv_async_send(async);
+}
+
+void
+MediaController::OnMRRemoved(PLT_DeviceDataReference& device)
+{
+    NPT_String uuid = device->GetUUID();
+
+    {
+        NPT_AutoLock lock(m_MediaRenderers);
+        m_MediaRenderers.Erase(uuid);
+    }
+
+    {
+        NPT_AutoLock lock(m_CurMediaRendererLock);
+        // if it's the currently selected one, we have to get rid of it
+        if (!m_CurMediaRenderer.IsNull() && m_CurMediaRenderer == device) {
+            m_CurMediaRenderer = NULL;
+        }
+    }
+
+    queue.push(new DeviceAction("rendererRemoved",device));
+    uv_async_send(async);
+}
+
+void
 MediaController::OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action)
 {
     if (!action)
