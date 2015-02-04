@@ -43,11 +43,12 @@ public:
     NPT_Result GetTrackPosition(Action* action);
     NPT_Result SetRenderer(NPT_String uuid);
 
+    void GetCurMR(PLT_DeviceDataReference& renderer);
 protected:
     std::queue<Action*> queue;
     uv_async_t* async;
 
-    void GetCurMR(PLT_DeviceDataReference& renderer);
+    
     PLT_DeviceDataReference getDeviceReference(NPT_String UUID);
 
 private:

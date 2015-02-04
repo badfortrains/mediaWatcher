@@ -24,6 +24,11 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "setRenderer", SetRenderer);
     NODE_SET_PROTOTYPE_METHOD(t, "openTrack", OpenTrack);
     NODE_SET_PROTOTYPE_METHOD(t, "openNextTrack", OpenTrack);
+    NODE_SET_PROTOTYPE_METHOD(t, "play", Play);
+    NODE_SET_PROTOTYPE_METHOD(t, "stop", Stop);
+    NODE_SET_PROTOTYPE_METHOD(t, "pause", Pause);
+    NODE_SET_PROTOTYPE_METHOD(t, "next", Next);
+
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -177,11 +182,7 @@ NAN_METHOD(Watcher::OpenNextTrack){
     Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
     CBAction* action = NULL;
 
-    if( args.Length() > 1 && args[1]->IsFunction()){
-        Local<Function> callbackHandle = args[1].As<Function>();
-        NanCallback *callback = new NanCallback(callbackHandle);
-        action = new CBAction(callback);
-    }
+    OPTIONAL_CB_ACTION(1,action);
 
 
     Local<Object> track = args[0]->ToObject();
@@ -203,6 +204,91 @@ NAN_METHOD(Watcher::OpenNextTrack){
     }
     NanReturnUndefined();
 }
+
+NAN_METHOD(Watcher::Play){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    OPTIONAL_CB_ACTION(0,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->Play(device, 0, "1", action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::Stop){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    OPTIONAL_CB_ACTION(0,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->Stop(device, 0, action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::Pause){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    OPTIONAL_CB_ACTION(0,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->Pause(device, 0, action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::Next){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    OPTIONAL_CB_ACTION(0,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->Next(device, 0, action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
 
 Persistent<FunctionTemplate> Watcher::constructor_template;
 uv_async_t Watcher::async;
