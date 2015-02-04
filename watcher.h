@@ -11,6 +11,17 @@
 using namespace node;
 using namespace v8;
 
+#define REQUIRE_ARGUMENT_INTEGER(i, var)                                        \
+    if (args.Length() <= (i) || !args[i]->IsInt32()) {                        	\
+        return NanThrowTypeError("Argument " #i " must be an integer");        	\
+    }                                                                          	\
+    int var(args[i]->IntegerValue());
+
+#define REQUIRE_ARGUMENT_STRING(i, var)                                        \
+    if (args.Length() <= (i) || !args[i]->IsString()) {                        \
+        return NanThrowTypeError("Argument " #i " must be a string");          \
+    }                                                                          \
+    String::Utf8Value var(args[i]->ToString());
 
 #define OPTIONAL_ARGUMENT_FUNCTION(i, var)                                     \
     Local<Function> var;                                                       \
@@ -56,6 +67,8 @@ protected:
 	static NAN_METHOD(Stop);
 	static NAN_METHOD(Pause);
 	static NAN_METHOD(Next);
+	static NAN_METHOD(SetVolume);
+	static NAN_METHOD(Seek);
 
 };
 

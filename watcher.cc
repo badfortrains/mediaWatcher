@@ -28,6 +28,9 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "stop", Stop);
     NODE_SET_PROTOTYPE_METHOD(t, "pause", Pause);
     NODE_SET_PROTOTYPE_METHOD(t, "next", Next);
+    NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
+    NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
+
 
 
     target->Set(NanNew("Watcher"),
@@ -281,6 +284,51 @@ NAN_METHOD(Watcher::Next){
     watcher->mc->GetCurMR(device);
     if (!device.IsNull()) {
         res = watcher->mc->Next(device, 0, action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+
+NAN_METHOD(Watcher::SetVolume){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    REQUIRE_ARGUMENT_INTEGER(0,volume)
+    OPTIONAL_CB_ACTION(1,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->SetVolume(device, 0, "Master", volume, action);
+    }
+
+    if(!NPT_SUCCEEDED(res) && action != NULL){
+        action->ErrorCB(res);
+    }
+    NanReturnUndefined();
+}
+
+NAN_METHOD(Watcher::Seek){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    CBAction* action = NULL;
+
+    REQUIRE_ARGUMENT_STRING(0,targetTime)
+    OPTIONAL_CB_ACTION(1,action);
+
+    NPT_Result res = NPT_ERROR_NO_SUCH_ITEM;;
+    PLT_DeviceDataReference device;
+    watcher->mc->GetCurMR(device);
+    if (!device.IsNull()) {
+        res = watcher->mc->Seek(device, 0,"REL_TIME",*targetTime, action);
     }
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
