@@ -19,6 +19,8 @@
 using namespace node;
 using namespace v8;
 
+
+
 class MediaController : public PLT_SyncMediaBrowser,
                         public PLT_MediaController,
                			public PLT_MediaControllerDelegate{
@@ -28,10 +30,21 @@ public:
 	virtual ~MediaController(){};
     // PLT_MediaBrowserDelegate methods
     bool OnMSAdded(PLT_DeviceDataReference& device);
-    // PLT_MediaControllerDelegate methods
     bool OnMRAdded(PLT_DeviceDataReference& device);
+    void OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars);
+    void OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars);
+
+    void OnCBActionResult(NPT_Result res, void* action);
+    void OnNextResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnStopResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnPlayResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnPauseResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnSetVolumeResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnSeekResult(NPT_Result res, PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+    void OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
+
     void OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action);
-    void OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& device,void* action);
+    
 
     //Only use on main chrome thread!
     void FlushQueue(ObjectWrap *context);

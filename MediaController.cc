@@ -9,6 +9,15 @@ MediaController::MediaController(PLT_CtrlPointReference& ctrlPoint, uv_async_t* 
     PLT_MediaController::SetDelegate(this);
 }
 
+void
+MediaController::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
+
+}
+
+void
+MediaController::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_StateVariable*>*  vars){
+
+}
 
 bool 
 MediaController::OnMSAdded(PLT_DeviceDataReference& device) 
@@ -82,7 +91,7 @@ MediaController::OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference
 }
 
 void
-MediaController::OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& device,void* action){
+MediaController::OnCBActionResult(NPT_Result res,void* action){
     if(!action)
         return;
 
