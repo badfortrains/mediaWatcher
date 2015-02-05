@@ -30,7 +30,7 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "next", Next);
     NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
     NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
-    NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GerRenderers);
+    NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GetRenderers);
 
 
 
@@ -53,7 +53,7 @@ NAN_METHOD(Watcher::New) {
     Watcher* mw = new Watcher();
     mw->Wrap(args.This());
 
-    uv_async_init(uv_default_loop(),&(Watcher::async),Watcher::AsyncCB);
+    uv_async_init(uv_default_loop(),&(Watcher::async), (uv_async_cb)Watcher::AsyncCB);
     Watcher::async.data = (void*) mw;
 
     mw->mc = new MediaController(Watcher::ctrlPoint,&Watcher::async);
@@ -134,7 +134,8 @@ NAN_METHOD(Watcher::SetRenderer){
             argv[0] = NanNull();
         else
             argv[0] = NanError("Renderer not found");
-        callbackHandle->Call(Context::GetCurrent()->Global(),1, argv); 
+
+         NanMakeCallback(NanGetCurrentContext()->Global(),NanNew(callbackHandle),1, argv); 
     }
     NanReturnUndefined();
 }
@@ -162,11 +163,11 @@ NAN_METHOD(Watcher::OpenTrack){
 
     for(unsigned int i=0; i < resArray->Length(); i++){
         PLT_MediaItemResource curRes;
-        curRes.m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
-        curRes.m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
+        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
+        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
         resource.Add(curRes);
     }
-    NPT_String didl(*String::AsciiValue(track->Get(NanNew("Didl"))));
+    NPT_String didl(*String::Utf8Value(track->Get(NanNew("Didl"))));
 
     NPT_Result res = watcher->mc->OpenTrack(resource,didl,action);
 
@@ -195,11 +196,11 @@ NAN_METHOD(Watcher::OpenNextTrack){
 
     for(unsigned int i=0; i < resArray->Length(); i++){
         PLT_MediaItemResource curRes;
-        curRes.m_Uri = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
-        curRes.m_ProtocolInfo = *String::AsciiValue(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
+        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
+        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
         resource.Add(curRes);
     }
-    NPT_String didl(*String::AsciiValue(track->Get(NanNew("Didl"))));
+    NPT_String didl(*String::Utf8Value(track->Get(NanNew("Didl"))));
 
     NPT_Result res = watcher->mc->OpenNextTrack(resource,didl,action);
 
@@ -338,26 +339,26 @@ NAN_METHOD(Watcher::Seek){
     NanReturnUndefined();
 }
 
-NAN_METHOD(Watcher::GerRenderers){
+NAN_METHOD(Watcher::GetRenderers){
     NanEscapableScope();
 
     Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
     PLT_DeviceMap devices = watcher->mc->GetMRs();
     const NPT_List<PLT_DeviceMapEntry*>& entries = devices.GetEntries();
-    Local<Array> res = Array::New(entries.GetItemCount());
+    Local<Array> res = NanNew<Array>(entries.GetItemCount());
     NPT_List<PLT_DeviceMapEntry*>::Iterator entry = entries.GetFirstItem();
     int i =0;
     while(entry){
-        Local<Object> tempDevice = Object::New();
+        Local<Object> tempDevice = NanNew<Object>();
         PLT_DeviceDataReference device = (*entry)->GetValue();
-        tempDevice->Set(NanNew("uuid"),NanNew<String>((*entry)->GetKey()));
+        tempDevice->Set(NanNew("uuid"),NanNew<String>(device->GetUUID()));
         tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
         res->Set(NanNew<Integer>(i),tempDevice);
         i++;
         ++entry;
     }
 
-    return NanEscapeScope(res);
+    NanReturnValue(NanEscapeScope(res));
 }
 
 

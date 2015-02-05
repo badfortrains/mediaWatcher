@@ -178,12 +178,12 @@ public:
     void HandleOKCallback(){
         NanScope();
         if(NPT_SUCCEEDED(res)){
-            Local<Array> dirArray = Array::New();
+            Local<Array> dirArray = NanNew<Array>();
             if(!resultList.IsNull()){
                 NPT_List<PLT_MediaObject*>::Iterator item = resultList->GetFirstItem();
                 int i =0;
                 while (item) {
-                    Local<Object> temp = Object::New();
+                    Local<Object> temp = NanNew<Object>();
                     temp->Set(NanNew("_id"),NanNew<String>((*item)->m_ObjectID));
                     temp->Set(NanNew("title"),NanNew<String>((*item)->m_Title));
                     temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));
@@ -221,9 +221,9 @@ public:
 
     Handle<Array> wrapResources(NPT_Array<PLT_MediaItemResource>* m_Resources){
         NanEscapableScope();
-        Local<Array> resArray = Array::New((int)m_Resources->GetItemCount());
+        Local<Array> resArray = NanNew<Array>((int)m_Resources->GetItemCount());
         for (NPT_Cardinal u=0; u<m_Resources->GetItemCount(); u++) {
-            Local<Object> resObj = Object::New();
+            Local<Object> resObj = NanNew<Object>();
             NPT_String protocol = (*m_Resources)[u].m_ProtocolInfo.ToString();
             resObj->Set(NanNew("ProtocolInfo"),NanNew<String>(protocol));
             resObj->Set(NanNew("Uri"),NanNew<String>((*m_Resources)[u].m_Uri));
@@ -234,11 +234,11 @@ public:
     void HandleOKCallback(){
         NanScope();
         if(NPT_SUCCEEDED(res)){
-            Local<Array> trackArray = Array::New((int)resultList->GetItemCount());
+            Local<Array> trackArray = NanNew<Array>((int)resultList->GetItemCount());
             int i =0;
             NPT_List<PLT_MediaObject*>::Iterator item = resultList->GetFirstItem();
             while (item) {
-                Local<Object> temp = Object::New();
+                Local<Object> temp = NanNew<Object>();
                 if(!(*item)->IsContainer()){
                     temp->Set(NanNew("Resources"),wrapResources(&(*item)->m_Resources));
                     temp->Set(NanNew("Didl"),NanNew<String>((*item)->m_Didl));

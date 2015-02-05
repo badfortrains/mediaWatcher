@@ -46,7 +46,7 @@ DeviceAction::DeviceAction(NPT_String eventName, PLT_DeviceDataReference& device
 
 void 
 DeviceAction::EmitAction(ObjectWrap* context){
-    Local<Object> event = Object::New();
+    Local<Object> event = NanNew<Object>();
     event->Set(NanNew("uuid"),NanNew<String>(uuid));
     event->Set(NanNew("baseUrl"),NanNew<String>(baseUrl));
     event->Set(NanNew("iconUrl"),NanNew<String>(iconUrl));
@@ -64,7 +64,7 @@ GetTrackPositionAction::GotResult(PLT_PositionInfo positionInfo){
 
 void
 GetTrackPositionAction::SuccessCB(){
-    Local<Object> position = Object::New();
+    Local<Object> position = NanNew<Object>();
     position->Set(NanNew("position"), NanNew<Number>(info.rel_time.ToMillis()));
     position->Set(NanNew("duration"), NanNew<Number>(info.track_duration.ToMillis()));
 
@@ -75,16 +75,16 @@ GetTrackPositionAction::SuccessCB(){
     callback->Call(2, argv);
 }
 
-StateVariableAction::StateVariableAction(PLT_Service* service, PLT_StateVariable* var, EventSource sourceType){
+StateVariableAction::StateVariableAction(PLT_Service* service, PLT_StateVariable* var, EventSource deviceType){
     name = var->GetName();
     value = var->GetValue();
     uuid = service->GetDevice()->GetUUID();
-    sourceType = sourceType;
+    sourceType = deviceType;
 }
 
 void
 StateVariableAction::EmitAction(ObjectWrap* context){
-    Local<Object> event = Object::New();
+    Local<Object> event = NanNew<Object>();
     event->Set(NanNew("name"),NanNew<String>(name));
     event->Set(NanNew("value"),NanNew<String>(value));
     event->Set(NanNew("uuid"),NanNew<String>(uuid));

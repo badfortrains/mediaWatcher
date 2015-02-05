@@ -66,7 +66,7 @@ protected:
 	static NAN_METHOD(Next);
 	static NAN_METHOD(SetVolume);
 	static NAN_METHOD(Seek);
-	static NAN_METHOD(GerRenderers);
+	static NAN_METHOD(GetRenderers);
 
 };
 
