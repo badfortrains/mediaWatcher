@@ -198,7 +198,7 @@ public:
             callback->Call(2, argv);
         }else{
             Local<Value> argv[] = {
-                NanError("Failed to retrieve directory"),
+                NanError(NPT_ResultText(res))
             };
             callback->Call(1, argv);
         }
@@ -268,7 +268,7 @@ public:
             callback->Call(2, argv);
         }else{
             Local<Value> argv[] = {
-                NanError("Failed to retrieve directory"),
+                NanError(NPT_ResultText(res))
             };
             callback->Call(1, argv);
         }
