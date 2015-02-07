@@ -13,7 +13,7 @@ void Watcher::Init(Handle<Object> target){
 
     NanAssignPersistent(constructor_template, t);
 
-    //NPT_LogManager::GetDefault().Configure("plist:.level=INFO;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=24");
+    NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=24");
     Watcher::ctrlPoint = new PLT_CtrlPoint();
     Watcher::upnp.AddCtrlPoint(Watcher::ctrlPoint);
     Watcher::upnp.Start();
@@ -31,8 +31,6 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
     NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
     NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GetRenderers);
-
-
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -340,7 +338,7 @@ NAN_METHOD(Watcher::Seek){
 }
 
 NAN_METHOD(Watcher::GetRenderers){
-    NanEscapableScope();
+    NanScope();
 
     Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
     PLT_DeviceMap devices = watcher->mc->GetMRs();
@@ -358,7 +356,7 @@ NAN_METHOD(Watcher::GetRenderers){
         ++entry;
     }
 
-    NanReturnValue(NanEscapeScope(res));
+    NanReturnValue(res);
 }
 
 

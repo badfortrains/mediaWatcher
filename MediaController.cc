@@ -15,6 +15,7 @@ MediaController::OnMRStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_S
     NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
     while (item) {
         queue.push(new StateVariableAction(service,*item,RENDERER));
+        item++;
     }
     uv_async_send(async);
 }
@@ -24,6 +25,7 @@ MediaController::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_S
     NPT_List<PLT_StateVariable*>::Iterator item = vars->GetFirstItem();
     while (item) {
         queue.push(new StateVariableAction(service,*item,SERVER));
+        item++;
     }
     uv_async_send(async);
 }
@@ -185,7 +187,7 @@ public:
                 while (item) {
                     Local<Object> temp = NanNew<Object>();
                     temp->Set(NanNew("_id"),NanNew<String>((*item)->m_ObjectID));
-                    temp->Set(NanNew("title"),NanNew<String>((*item)->m_Title));
+                    temp->Set(NanNew("Title"),NanNew<String>((*item)->m_Title));
                     temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));
                     dirArray->Set(i++,temp);
                     ++item;

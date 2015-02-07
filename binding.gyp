@@ -99,6 +99,9 @@
             '<(neptune_dir)/System/Apple/NptAppleAutoreleasePool.mm',
             '<(neptune_dir)/System/Apple/NptAppleLogConfig.mm',
           ],
+          'link_settings' :{
+            'libraries': ['-framework','Cocoa']
+          }
         }],
       ],
       'direct_dependent_settings': {
