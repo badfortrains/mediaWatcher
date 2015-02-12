@@ -45,9 +45,11 @@ Watcher.prototype.setPosition = function(uuid,position){
 Watcher.prototype.getTrackPosition = function(uuid){
   var self = this;
   this.setRenderer(uuid);
-  this.getPosition(function(result){
-    result.uuid = uuid;
-    self.emit("gotPosition",result);
+  this.getPosition(function(err,result){
+    if(!err){
+      result.uuid = uuid;
+      self.emit("gotPosition",result);
+    }
   })
 }
 
