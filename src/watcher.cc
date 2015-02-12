@@ -171,6 +171,7 @@ NAN_METHOD(Watcher::OpenTrack){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -204,6 +205,7 @@ NAN_METHOD(Watcher::OpenNextTrack){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -225,6 +227,7 @@ NAN_METHOD(Watcher::Play){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -246,6 +249,7 @@ NAN_METHOD(Watcher::Stop){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -267,6 +271,7 @@ NAN_METHOD(Watcher::Pause){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -288,6 +293,7 @@ NAN_METHOD(Watcher::Next){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -311,6 +317,7 @@ NAN_METHOD(Watcher::SetVolume){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
@@ -333,6 +340,7 @@ NAN_METHOD(Watcher::Seek){
 
     if(!NPT_SUCCEEDED(res) && action != NULL){
         action->ErrorCB(res);
+        delete action;
     }
     NanReturnUndefined();
 }
