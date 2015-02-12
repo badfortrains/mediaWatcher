@@ -1,4 +1,4 @@
-var Watcher = require("./build/Debug/watcher.node").Watcher;
+var Watcher = require('./build/Release/watcher').Watcher;
 var EventEmitter = require('events').EventEmitter;
 
 function inherits(target, source) {
@@ -7,20 +7,52 @@ function inherits(target, source) {
 }
 
 
-console.log(Watcher)
 inherits(Watcher, EventEmitter);
+
+Watcher.prototype.openAndPlay = function(trackItem,callback){
+  var self = this;
+  this.openTrack(trackItem,function(resO){
+    self.play(function(resP){
+      callback({res: resP});
+    });
+  });
+};
+
+/**
+ * @param {UUID} uuid of renderer
+ * @param {Interger Milliseconds} position to seek to
+ */
+Watcher.prototype.setPosition = function(uuid,position){
+  var hours = Math.floor(position / 3600000),
+      minutes,
+      seconds,
+      target;
+
+  position -= hours * 3600000;
+  minutes = Math.floor(position / 60000);
+  position -= minutes * 60000;
+  seconds = Math.floor(position / 1000);
+
+  hours = (hours < 10) ? "0"+hours : hours;
+  minutes = (minutes < 10) ? "0"+minutes : minutes;
+  seconds = (seconds < 10) ? "0"+seconds : seconds;
+
+  target = hours + ":" + minutes + ":" + seconds;
+  this.setRenderer(this.uuid);
+  this.seek(target);
+}
+
+Watcher.prototype.getTrackPosition = function(uuid){
+  var self = this;
+  this.setRenderer(uuid);
+  this.getTrackPosition(function(result){
+    result.uuid = uuid;
+    self.emit("gotPosition",result);
+  })
+}
+
+
+
 var mw = new Watcher();
 
-mw.on("serverAdded",function(ev){
-	if(ev.uuid == "7076436f-6e65-1063-8074-4ce6766160b7"){
-		console.log("get tracks")
-		mw.getTracks(ev.uuid,"1$268435466",function(){
-			console.log("got results")
-			console.log(arguments)
-		})
-	}
-})
-
-mw.on("rendererAdded",function(ev){
-	console.log("rendererAdded",ev)
-})
+module.exports = mw;

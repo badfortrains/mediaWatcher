@@ -1,5 +1,5 @@
 #include <uv.h>
-#include "MediaController.h"
+#include "mediaController.h"
 
 MediaController::MediaController(PLT_CtrlPointReference& ctrlPoint, uv_async_t* async) :
     PLT_SyncMediaBrowser(ctrlPoint),

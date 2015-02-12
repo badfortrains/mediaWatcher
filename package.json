@@ -1,14 +1,10 @@
 {
   "name": "mediaWatcher",
-  "version": "0.0.1",
-  "scripts": {
-    "preinstall": "",
-    "install": "./build.sh"
-  },
+  "version": "0.0.2",
   "dependencies": {
     "Platinum": "git://github.com/badfortrains/Platinum.git",
     "nan": "^1.6.1"
   },
-  "main": "./media_watcher.node",
+  "main": "./watcher.js",
   "private": true
 }

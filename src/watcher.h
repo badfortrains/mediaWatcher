@@ -6,7 +6,7 @@
 #include <v8.h>
 #include <node.h>
 
-#include "MediaController.h"
+#include "mediaController.h"
 
 using namespace node;
 using namespace v8;

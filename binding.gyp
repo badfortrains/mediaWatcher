@@ -3,7 +3,7 @@
     {
       'target_name': 'watcher',
       'dependencies': ['neptune', 'platinum'],
-      'sources': [ 'watcher.cc', 'MediaController.cc', 'Actions.cc', ],
+      'sources': [ 'src/watcher.cc', 'src/mediaController.cc', 'src/actions.cc', ],
       "include_dirs" : [
           "<!(node -e \"require('nan')\")"
       ]
