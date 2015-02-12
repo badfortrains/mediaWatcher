@@ -33,10 +33,17 @@ using namespace v8;
     }
 
 #define OPTIONAL_CB_ACTION(i, var)												\
-    OPTIONAL_ARGUMENT_FUNCTION(i, callbackHandle);							 	\
-    NanCallback *callback = new NanCallback(callbackHandle);					\
-    var = new CBAction(callback);	
+    Local<Function> callbackHandle;                                             \
+    if (args.Length() > i && !args[i]->IsUndefined()) {                        \
+        if (!args[i]->IsFunction()) {                                          \
+            return NanThrowTypeError("Argument " #i " must be a function");    \
+        }                                                                      \
+        callbackHandle = Local<Function>::Cast(args[i]);                       \
+        NanCallback *callback = new NanCallback(callbackHandle);                \
+        var = new CBAction(callback);                                           \
+    }
 
+                                  
 class Watcher : public ObjectWrap{
 public:
 	static Persistent<FunctionTemplate> constructor_template;
