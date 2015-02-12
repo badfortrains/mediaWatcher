@@ -344,7 +344,7 @@ MediaController::OpenNextTrack(NPT_Array<PLT_MediaItemResource> &Resources,NPT_S
                 return NPT_ERROR_NOT_SUPPORTED;
             }
             // invoke the setUri
-            return SetAVTransportURI(device, 0, Resources[resource_index].m_Uri, Didl,action);
+            return SetNextAVTransportURI(device, 0, Resources[resource_index].m_Uri, Didl,action);
         } else {
             NPT_LOG_SEVERE("couldn't find resource");
             return NPT_ERROR_NO_SUCH_ITEM;

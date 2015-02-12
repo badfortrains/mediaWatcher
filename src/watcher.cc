@@ -23,7 +23,7 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "getPosition", GetTrackPosition);
     NODE_SET_PROTOTYPE_METHOD(t, "setRenderer", SetRenderer);
     NODE_SET_PROTOTYPE_METHOD(t, "openTrack", OpenTrack);
-    NODE_SET_PROTOTYPE_METHOD(t, "openNextTrack", OpenTrack);
+    NODE_SET_PROTOTYPE_METHOD(t, "openNextTrack", OpenNextTrack);
     NODE_SET_PROTOTYPE_METHOD(t, "play", Play);
     NODE_SET_PROTOTYPE_METHOD(t, "stop", Stop);
     NODE_SET_PROTOTYPE_METHOD(t, "pause", Pause);
