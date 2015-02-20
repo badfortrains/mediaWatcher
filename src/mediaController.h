@@ -14,7 +14,7 @@
 #include "NptStack.h"
 
 #include <nan.h>
-#include "Actions.h"
+#include "actions.h"
 
 using namespace node;
 using namespace v8;
