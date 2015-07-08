@@ -47,7 +47,7 @@ public:
     void OnSetAVTransportURIResult(NPT_Result res,PLT_DeviceDataReference& /* device */,void* action){ OnCBActionResult(res,action); };
 
     void OnGetPositionInfoResult(NPT_Result res, PLT_DeviceDataReference& /* device */,PLT_PositionInfo* info,void* action);
-    
+
 
     //Only use on main chrome thread!
     void FlushQueue(ObjectWrap *context);
@@ -61,11 +61,12 @@ public:
 
     void GetCurMR(PLT_DeviceDataReference& renderer);
     PLT_DeviceMap GetMRs();
+    PLT_DeviceMap GetMSs();
 protected:
     std::queue<Action*> queue;
     uv_async_t* async;
 
-    
+
     PLT_DeviceDataReference getDeviceReference(NPT_String UUID);
 
 private:
@@ -76,15 +77,15 @@ private:
     NPT_Lock<PLT_DeviceMap> m_MediaServers;
     NPT_Lock<PLT_DeviceMap> m_MediaRenderers;
 
-    /* Currently selected media server as well as 
-     * a lock.  If you ever want to hold both the m_CurMediaRendererLock lock and the 
+    /* Currently selected media server as well as
+     * a lock.  If you ever want to hold both the m_CurMediaRendererLock lock and the
      * m_CurMediaServerLock lock, make sure you grab the server lock first.
      */
     PLT_DeviceDataReference m_CurMediaServer;
     NPT_Mutex               m_CurMediaServerLock;
 
-    /* Currently selected media renderer as well as 
-     * a lock.  If you ever want to hold both the m_CurMediaRendererLock lock and the 
+    /* Currently selected media renderer as well as
+     * a lock.  If you ever want to hold both the m_CurMediaRendererLock lock and the
      * m_CurMediaServerLock lock, make sure you grab the server lock first.
      */
     PLT_DeviceDataReference m_CurMediaRenderer;

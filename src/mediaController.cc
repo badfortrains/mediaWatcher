@@ -30,9 +30,9 @@ MediaController::OnMSStateVariablesChanged(PLT_Service*  service, NPT_List<PLT_S
     uv_async_send(async);
 }
 
-bool 
-MediaController::OnMSAdded(PLT_DeviceDataReference& device) 
-{   
+bool
+MediaController::OnMSAdded(PLT_DeviceDataReference& device)
+{
     NPT_String uuid = device->GetUUID();
 
     // Issue special action upon discovering MediaConnect server
@@ -40,9 +40,9 @@ MediaController::OnMSAdded(PLT_DeviceDataReference& device)
     if (NPT_SUCCEEDED(device->FindServiceByType("urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:*", service))) {
         PLT_ActionReference action;
         PLT_SyncMediaBrowser::m_CtrlPoint->CreateAction(
-            device, 
-            "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1", 
-            "IsAuthorized", 
+            device,
+            "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1",
+            "IsAuthorized",
             action);
         if (!action.IsNull()) {
             action->SetArgumentValue("DeviceID", "");
@@ -50,9 +50,9 @@ MediaController::OnMSAdded(PLT_DeviceDataReference& device)
         }
 
         PLT_SyncMediaBrowser::m_CtrlPoint->CreateAction(
-            device, 
-            "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1", 
-            "IsValidated", 
+            device,
+            "urn:microsoft.com:service:X_MS_MediaReceiverRegistrar:1",
+            "IsValidated",
             action);
         if (!action.IsNull()) {
             action->SetArgumentValue("DeviceID", "");
@@ -60,16 +60,19 @@ MediaController::OnMSAdded(PLT_DeviceDataReference& device)
         }
     }
 
+    NPT_AutoLock lock(m_MediaServers);
+    m_MediaServers.Put(uuid, device);
+
     DeviceAction* event = new DeviceAction("serverAdded",device);
     queue.push(event);
     uv_async_send(async);
 
-    return true; 
+    return true;
 }
 
-bool 
-MediaController::OnMRAdded(PLT_DeviceDataReference& device) 
-{   
+bool
+MediaController::OnMRAdded(PLT_DeviceDataReference& device)
+{
     NPT_String uuid = device->GetUUID();
     PLT_Service* service;
     if (NPT_SUCCEEDED(device->FindServiceByType("urn:schemas-upnp-org:service:AVTransport:*", service))) {
@@ -81,7 +84,7 @@ MediaController::OnMRAdded(PLT_DeviceDataReference& device)
         uv_async_send(async);
     }
 
-    return true; 
+    return true;
 }
 
 void
@@ -125,7 +128,14 @@ MediaController::GetMRs(){
     NPT_AutoLock MRLock(m_MediaRenderers);
     res  = m_MediaRenderers;
     return res;
+}
 
+PLT_DeviceMap
+MediaController::GetMSs(){
+    PLT_DeviceMap res;
+    NPT_AutoLock MRLock(m_MediaServers);
+    res  = m_MediaServers;
+    return res;
 }
 
 void
@@ -256,7 +266,7 @@ public:
                     }
                 }
 
-                temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));  
+                temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));
                 temp->Set(NanNew("oID"),NanNew<String>((*item)->m_ObjectID));
                 trackArray->Set(i,temp);
 
@@ -278,17 +288,17 @@ public:
 
 };
 
-void 
+void
 MediaController::BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId){
     NanAsyncQueueWorker(new BrowseAction(callback, uuid, objectId,this));
 }
 
-void 
+void
 MediaController::GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId){
     NanAsyncQueueWorker(new GetTracksAction(callback, uuid, objectId,this));
 }
 
-NPT_Result 
+NPT_Result
 MediaController::SetRenderer(NPT_String uuid)
 {
     PLT_DeviceDataReference* result;

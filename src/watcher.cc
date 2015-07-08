@@ -31,6 +31,7 @@ void Watcher::Init(Handle<Object> target){
     NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
     NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
     NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GetRenderers);
+		NODE_SET_PROTOTYPE_METHOD(t, "getServers", GetServers);
 
     target->Set(NanNew("Watcher"),
         t->GetFunction());
@@ -110,7 +111,7 @@ NAN_METHOD(Watcher::GetTrackPosition){
     if(!NPT_SUCCEEDED(res)){
         action->ErrorCB(res);
         delete action;
-    }   
+    }
     NanReturnUndefined();
 }
 
@@ -133,7 +134,7 @@ NAN_METHOD(Watcher::SetRenderer){
         else
             argv[0] = NanError("Renderer not found");
 
-         NanMakeCallback(NanGetCurrentContext()->Global(),NanNew(callbackHandle),1, argv); 
+         NanMakeCallback(NanGetCurrentContext()->Global(),NanNew(callbackHandle),1, argv);
     }
     NanReturnUndefined();
 }
@@ -361,7 +362,29 @@ NAN_METHOD(Watcher::GetRenderers){
         tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
         res->Set(NanNew<Integer>(i),tempDevice);
         i++;
-        ++entry;
+        entry++;
+    }
+
+    NanReturnValue(res);
+}
+
+NAN_METHOD(Watcher::GetServers){
+    NanScope();
+
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    PLT_DeviceMap devices = watcher->mc->GetMSs();
+    const NPT_List<PLT_DeviceMapEntry*>& entries = devices.GetEntries();
+    Local<Array> res = NanNew<Array>(entries.GetItemCount());
+    NPT_List<PLT_DeviceMapEntry*>::Iterator entry = entries.GetFirstItem();
+    int i =0;
+    while(entry){
+        Local<Object> tempDevice = NanNew<Object>();
+        PLT_DeviceDataReference device = (*entry)->GetValue();
+        tempDevice->Set(NanNew("uuid"),NanNew<String>(device->GetUUID()));
+        tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
+        res->Set(NanNew<Integer>(i),tempDevice);
+        i++;
+        entry++;
     }
 
     NanReturnValue(res);

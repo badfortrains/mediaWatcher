@@ -43,7 +43,7 @@ using namespace v8;
         var = new CBAction(callback);                                           \
     }
 
-                                  
+
 class Watcher : public ObjectWrap{
 public:
 	static Persistent<FunctionTemplate> constructor_template;
@@ -74,6 +74,7 @@ protected:
 	static NAN_METHOD(SetVolume);
 	static NAN_METHOD(Seek);
 	static NAN_METHOD(GetRenderers);
+  static NAN_METHOD(GetServers);
 
 };
 
