@@ -9,13 +9,13 @@
 
 using namespace node;
 
-#define TRY_CATCH_CALL(context, callback, argc, argv)                          \
-    NanMakeCallback((context), (callback), (argc), (argv))
+#define TRY_CATCH_CALL(context, callback, argc, argv)                               \
+    Nan::MakeCallback((context), (callback), (argc), (argv))
 
-#define EMIT_EVENT(obj, argc, argv)                                            \
-    TRY_CATCH_CALL((obj),                                                      \
-        Local<Function>::Cast((obj)->Get(NanNew("emit"))),                     \
-        argc, argv                                                             \
+#define EMIT_EVENT(obj, argc, argv)                                                 \
+    TRY_CATCH_CALL((obj),                                                           \
+        Local<Function>::Cast((obj)->Get(Nan::New<String>("emit").ToLocalChecked())), \
+        argc, argv                                                                  \
     );
 
 
@@ -30,7 +30,7 @@ public:
 
 class CBAction : public Action{
 public:
-    CBAction(NanCallback *callback) : callback(callback){};
+    CBAction(Nan::Callback *callback) : callback(callback){};
     virtual ~CBAction();
 
     void EmitAction(ObjectWrap *context);
@@ -40,13 +40,13 @@ public:
     virtual void SuccessCB();
 
 protected:
-    NanCallback *callback;
+    Nan::Callback *callback;
     NPT_Result res;
 };
 
 class GetTrackPositionAction : public CBAction{
 public:
-    GetTrackPositionAction(NanCallback *callback) : CBAction(callback){};
+    GetTrackPositionAction(Nan::Callback *callback) : CBAction(callback){};
     virtual ~GetTrackPositionAction(){};
     void GotResult(PLT_PositionInfo positionInfo);
     void SuccessCB();

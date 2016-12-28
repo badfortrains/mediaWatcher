@@ -3,38 +3,39 @@
 
 #include "watcher.h"
 
+Nan::Persistent<v8::Function> Watcher::constructor;
+uv_async_t Watcher::async;
+PLT_UPnP Watcher::upnp;
+PLT_CtrlPointReference Watcher::ctrlPoint;
 
-void Watcher::Init(Handle<Object> target){
-	NanScope();
+NAN_MODULE_INIT(Watcher::Init) {
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(New);
+  tpl->SetClassName(Nan::New("Watcher").ToLocalChecked());
+  tpl->InstanceTemplate()->SetInternalFieldCount(1);
 
-	Local<FunctionTemplate> t = NanNew<FunctionTemplate>(New);
-    t->InstanceTemplate()->SetInternalFieldCount(1);
-    t->SetClassName(NanNew("Watcher"));
+  Nan::SetPrototypeMethod(tpl, "browse", Browse);
+  Nan::SetPrototypeMethod(tpl, "getTracks", GetTracks);
+  Nan::SetPrototypeMethod(tpl, "getPosition", GetTrackPosition);
+  Nan::SetPrototypeMethod(tpl, "setRenderer", SetRenderer);
+  Nan::SetPrototypeMethod(tpl, "openTrack", OpenTrack);
+  Nan::SetPrototypeMethod(tpl, "openNextTrack", OpenNextTrack);
+  Nan::SetPrototypeMethod(tpl, "play", Play);
+  Nan::SetPrototypeMethod(tpl, "stop", Stop);
+  Nan::SetPrototypeMethod(tpl, "pause", Pause);
+  Nan::SetPrototypeMethod(tpl, "next", Next);
+  Nan::SetPrototypeMethod(tpl, "setVolume", SetVolume);
+  Nan::SetPrototypeMethod(tpl, "seek", Seek);
+  Nan::SetPrototypeMethod(tpl, "getRenderers", GetRenderers);
+  Nan::SetPrototypeMethod(tpl, "getServers", GetServers);
 
-    NanAssignPersistent(constructor_template, t);
 
-    NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=24");
-    Watcher::ctrlPoint = new PLT_CtrlPoint();
-    Watcher::upnp.AddCtrlPoint(Watcher::ctrlPoint);
-    Watcher::upnp.Start();
+  NPT_LogManager::GetDefault().Configure("plist:.level=FINE;.handlers=ConsoleHandler;.ConsoleHandler.colors=off;.ConsoleHandler.filter=24");
+  Watcher::ctrlPoint = new PLT_CtrlPoint();
+  Watcher::upnp.AddCtrlPoint(Watcher::ctrlPoint);
+  Watcher::upnp.Start();
 
-    NODE_SET_PROTOTYPE_METHOD(t, "browse", Browse);
-    NODE_SET_PROTOTYPE_METHOD(t, "getTracks", GetTracks);
-    NODE_SET_PROTOTYPE_METHOD(t, "getPosition", GetTrackPosition);
-    NODE_SET_PROTOTYPE_METHOD(t, "setRenderer", SetRenderer);
-    NODE_SET_PROTOTYPE_METHOD(t, "openTrack", OpenTrack);
-    NODE_SET_PROTOTYPE_METHOD(t, "openNextTrack", OpenNextTrack);
-    NODE_SET_PROTOTYPE_METHOD(t, "play", Play);
-    NODE_SET_PROTOTYPE_METHOD(t, "stop", Stop);
-    NODE_SET_PROTOTYPE_METHOD(t, "pause", Pause);
-    NODE_SET_PROTOTYPE_METHOD(t, "next", Next);
-    NODE_SET_PROTOTYPE_METHOD(t, "setVolume", SetVolume);
-    NODE_SET_PROTOTYPE_METHOD(t, "seek", Seek);
-    NODE_SET_PROTOTYPE_METHOD(t, "getRenderers", GetRenderers);
-		NODE_SET_PROTOTYPE_METHOD(t, "getServers", GetServers);
-
-    target->Set(NanNew("Watcher"),
-        t->GetFunction());
+  constructor.Reset(Nan::GetFunction(tpl).ToLocalChecked());
+  Nan::Set(target, Nan::New("Watcher").ToLocalChecked(), Nan::GetFunction(tpl).ToLocalChecked());
 }
 
 void Watcher::AsyncCB(uv_async_t *handle, int status /*UNUSED*/){
@@ -43,67 +44,61 @@ void Watcher::AsyncCB(uv_async_t *handle, int status /*UNUSED*/){
 }
 
 NAN_METHOD(Watcher::New) {
-    NanScope();
+  if (!info.IsConstructCall()) {
+    return Nan::ThrowTypeError("Use the new operator to create new Watcher objects");
+  }
 
-    if (!args.IsConstructCall()) {
-        return NanThrowTypeError("Use the new operator to create new Watcher objects");
-    }
+  Watcher* mw = new Watcher();
+  mw->Wrap(info.This());
+  
 
-    Watcher* mw = new Watcher();
-    mw->Wrap(args.This());
+  uv_async_init(uv_default_loop(),&(Watcher::async), (uv_async_cb)Watcher::AsyncCB);
+  Watcher::async.data = (void*) mw;
 
-    uv_async_init(uv_default_loop(),&(Watcher::async), (uv_async_cb)Watcher::AsyncCB);
-    Watcher::async.data = (void*) mw;
+  mw->mc = new MediaController(Watcher::ctrlPoint,&Watcher::async);
 
-    mw->mc = new MediaController(Watcher::ctrlPoint,&Watcher::async);
-
-    NanReturnValue(args.This());
+  info.GetReturnValue().Set(info.This());
 }
 
 //uuid, dir, callback
 NAN_METHOD(Watcher::Browse){
-    NanScope();
-
-    if (args.Length() < 3) {
-        return NanThrowTypeError("Expected 3 arguments");
+    if (info.Length() < 3) {
+        return Nan::ThrowTypeError("Expected 3 arguments");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
-    Local<Function> callbackHandle = args[2].As<Function>();
-    NanCallback *callback = new NanCallback(callbackHandle);
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
+    Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
 
-    String::Utf8Value uuid(args[0]);
-    String::Utf8Value dir(args[1]);
+    String::Utf8Value uuid(info[0]);
+    String::Utf8Value dir(info[1]);
 
     watcher->mc->BrowseDirectory(callback,*uuid,*dir);
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::GetTracks){
-    NanScope();
+    
 
-    if (args.Length() < 3) {
-        return NanThrowTypeError("Expected 3 arguments");
+    if (info.Length() < 3) {
+        return Nan::ThrowTypeError("Expected 3 arguments");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
-    Local<Function> callbackHandle = args[2].As<Function>();
-    NanCallback *callback = new NanCallback(callbackHandle);
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
+    Nan::Callback *callback = new Nan::Callback(info[2].As<Function>());
 
-    String::Utf8Value uuid(args[0]);
-    String::Utf8Value dir(args[1]);
+    String::Utf8Value uuid(info[0]);
+    String::Utf8Value dir(info[1]);
 
     watcher->mc->GetTracks(callback,*uuid,*dir);
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::GetTrackPosition){
-    NanScope();
+    
 
-    if( args.Length() < 1 || !args[0]->IsFunction()){
-        return NanThrowTypeError("Expected a callback function");
+    if( info.Length() < 1 || !info[0]->IsFunction()){
+        return Nan::ThrowTypeError("Expected a callback function");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
-    Local<Function> callbackHandle = args[0].As<Function>();
-    NanCallback *callback = new NanCallback(callbackHandle);
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
+    Nan::Callback *callback = new Nan::Callback(info[0].As<Function>());
 
     GetTrackPositionAction* action = new GetTrackPositionAction(callback);
     NPT_Result res = watcher->mc->GetTrackPosition(action);
@@ -112,61 +107,64 @@ NAN_METHOD(Watcher::GetTrackPosition){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::SetRenderer){
-    NanScope();
+    
 
-    if( args.Length() < 1 ){
-        return NanThrowTypeError("Expected at least 1 argument (uuid)");
+    if( info.Length() < 1 ){
+        return Nan::ThrowTypeError("Expected at least 1 argument (uuid)");
     }
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
-    String::Utf8Value uuid(args[0]);
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
+    String::Utf8Value uuid(info[0]);
 
     NPT_Result res = watcher->mc->SetRenderer(*uuid);
 
-    if( args.Length() > 1 && args[1]->IsFunction()){
-        Local<Function> callbackHandle = args[1].As<Function>();
+    if( info.Length() > 1 && info[1]->IsFunction()){
+        Local<Function> callbackHandle = info[1].As<Function>();
         Handle<Value> argv[1];
         if(NPT_SUCCEEDED(res))
-            argv[0] = NanNull();
+            argv[0] = Nan::Null();
         else
-            argv[0] = NanError("Renderer not found");
+            argv[0] = Nan::Error("Renderer not found");
 
-         NanMakeCallback(NanGetCurrentContext()->Global(),NanNew(callbackHandle),1, argv);
+         Nan::MakeCallback(Nan::GetCurrentContext()->Global(), callbackHandle,1, argv);
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::OpenTrack){
-    NanScope();
+    
 
-    if( args.Length() < 1 ){
-        return NanThrowTypeError("Expected at least 1 argument (track object)");
+    if( info.Length() < 1 ){
+        return Nan::ThrowTypeError("Expected at least 1 argument (track object)");
     }
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
-    if( args.Length() > 1 && args[1]->IsFunction()){
-        Local<Function> callbackHandle = args[1].As<Function>();
-        NanCallback *callback = new NanCallback(callbackHandle);
+    if( info.Length() > 1 && info[1]->IsFunction()){
+        Nan::Callback *callback = new Nan::Callback(info[1].As<Function>());
         action = new CBAction(callback);
     }
 
 
-    Local<Object> track = args[0]->ToObject();
-    Local<Array> resArray = Local<Array>::Cast(track->Get(NanNew("Resources")));
+    Local<Object> track = info[0]->ToObject();
+    Local<String> key = Nan::New<String>("Resources").ToLocalChecked();
+    Local<Array> resArray = Local<Array>::Cast(track->Get(key));
     NPT_Array<PLT_MediaItemResource> resource(resArray->Length());
 
     for(unsigned int i=0; i < resArray->Length(); i++){
         PLT_MediaItemResource curRes;
-        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
-        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
+        Local<String> key = Nan::New<String>("Uri").ToLocalChecked();
+        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(key));
+        Local<String> protocolInfo = Nan::New<String>("ProtocolInfo").ToLocalChecked();
+        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(protocolInfo));
         resource.Add(curRes);
     }
-    NPT_String didl(*String::Utf8Value(track->Get(NanNew("Didl"))));
+    Local<String> didlKey = Nan::New<String>("ProtocolInfo").ToLocalChecked();
+    NPT_String didl(*String::Utf8Value(track->Get(didlKey)));
 
     NPT_Result res = watcher->mc->OpenTrack(resource,didl,action);
 
@@ -174,33 +172,37 @@ NAN_METHOD(Watcher::OpenTrack){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::OpenNextTrack){
-    NanScope();
+    
 
-    if( args.Length() < 1 ){
-        return NanThrowTypeError("Expected at least 1 argument (track object)");
+    if( info.Length() < 1 ){
+        return Nan::ThrowTypeError("Expected at least 1 argument (track object)");
     }
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     OPTIONAL_CB_ACTION(1,action);
 
 
-    Local<Object> track = args[0]->ToObject();
-    Local<Array> resArray = Local<Array>::Cast(track->Get(NanNew("Resources")));
+    Local<Object> track = info[0]->ToObject();
+    Local<String> key = Nan::New<String>("Resources").ToLocalChecked();
+    Local<Array> resArray = Local<Array>::Cast(track->Get(key));
     NPT_Array<PLT_MediaItemResource> resource(resArray->Length());
 
     for(unsigned int i=0; i < resArray->Length(); i++){
         PLT_MediaItemResource curRes;
-        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("Uri")));
-        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(NanNew("ProtocolInfo")));
+        Local<String> uriKey = Nan::New<String>("Uri").ToLocalChecked();
+        curRes.m_Uri = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(uriKey));
+        Local<String> pIkey = Nan::New<String>("ProtocolInfo").ToLocalChecked();
+        curRes.m_ProtocolInfo = *String::Utf8Value(resArray->Get(i)->ToObject()->Get(pIkey));
         resource.Add(curRes);
     }
-    NPT_String didl(*String::Utf8Value(track->Get(NanNew("Didl"))));
+    Local<String> didlKey = Nan::New<String>("Didl").ToLocalChecked();
+    NPT_String didl(*String::Utf8Value(track->Get(didlKey)));
 
     NPT_Result res = watcher->mc->OpenNextTrack(resource,didl,action);
 
@@ -208,13 +210,13 @@ NAN_METHOD(Watcher::OpenNextTrack){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::Play){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     OPTIONAL_CB_ACTION(0,action);
@@ -230,13 +232,13 @@ NAN_METHOD(Watcher::Play){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::Stop){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     OPTIONAL_CB_ACTION(0,action);
@@ -252,13 +254,13 @@ NAN_METHOD(Watcher::Stop){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::Pause){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     OPTIONAL_CB_ACTION(0,action);
@@ -274,13 +276,13 @@ NAN_METHOD(Watcher::Pause){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::Next){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     OPTIONAL_CB_ACTION(0,action);
@@ -296,14 +298,14 @@ NAN_METHOD(Watcher::Next){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 
 NAN_METHOD(Watcher::SetVolume){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     REQUIRE_ARGUMENT_INTEGER(0,volume)
@@ -320,13 +322,13 @@ NAN_METHOD(Watcher::SetVolume){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::Seek){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     CBAction* action = NULL;
 
     REQUIRE_ARGUMENT_STRING(0,targetTime)
@@ -343,58 +345,52 @@ NAN_METHOD(Watcher::Seek){
         action->ErrorCB(res);
         delete action;
     }
-    NanReturnUndefined();
+    info.GetReturnValue().Set(Nan::Undefined());
 }
 
 NAN_METHOD(Watcher::GetRenderers){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     PLT_DeviceMap devices = watcher->mc->GetMRs();
     const NPT_List<PLT_DeviceMapEntry*>& entries = devices.GetEntries();
-    Local<Array> res = NanNew<Array>(entries.GetItemCount());
+    Local<Array> res = Nan::New<Array>(entries.GetItemCount());
     NPT_List<PLT_DeviceMapEntry*>::Iterator entry = entries.GetFirstItem();
     int i =0;
     while(entry){
-        Local<Object> tempDevice = NanNew<Object>();
+        Local<Object> tempDevice = Nan::New<Object>();
         PLT_DeviceDataReference device = (*entry)->GetValue();
-        tempDevice->Set(NanNew("uuid"),NanNew<String>(device->GetUUID()));
-        tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
-        res->Set(NanNew<Integer>(i),tempDevice);
+        tempDevice->Set(Nan::New("uuid").ToLocalChecked(),Nan::New<String>(device->GetUUID()).ToLocalChecked());
+        tempDevice->Set(Nan::New("name").ToLocalChecked(),Nan::New<String>(device->GetFriendlyName()).ToLocalChecked());
+        res->Set(Nan::New<Integer>(i),tempDevice);
         i++;
         entry++;
     }
 
-    NanReturnValue(res);
+    info.GetReturnValue().Set(res);
 }
 
 NAN_METHOD(Watcher::GetServers){
-    NanScope();
+    
 
-    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(args.Holder());
+    Watcher* watcher = ObjectWrap::Unwrap<Watcher>(info.Holder());
     PLT_DeviceMap devices = watcher->mc->GetMSs();
     const NPT_List<PLT_DeviceMapEntry*>& entries = devices.GetEntries();
-    Local<Array> res = NanNew<Array>(entries.GetItemCount());
+    Local<Array> res = Nan::New<Array>(entries.GetItemCount());
     NPT_List<PLT_DeviceMapEntry*>::Iterator entry = entries.GetFirstItem();
     int i =0;
     while(entry){
-        Local<Object> tempDevice = NanNew<Object>();
+        Local<Object> tempDevice = Nan::New<Object>();
         PLT_DeviceDataReference device = (*entry)->GetValue();
-        tempDevice->Set(NanNew("uuid"),NanNew<String>(device->GetUUID()));
-        tempDevice->Set(NanNew("name"),NanNew<String>(device->GetFriendlyName()));
-        res->Set(NanNew<Integer>(i),tempDevice);
+        tempDevice->Set(Nan::New("uuid").ToLocalChecked(),Nan::New<String>(device->GetUUID()).ToLocalChecked());
+        tempDevice->Set(Nan::New("name").ToLocalChecked(),Nan::New<String>(device->GetFriendlyName()).ToLocalChecked());
+        res->Set(Nan::New<Integer>(i),tempDevice);
         i++;
         entry++;
     }
 
-    NanReturnValue(res);
+    info.GetReturnValue().Set(res);
 }
-
-
-Persistent<FunctionTemplate> Watcher::constructor_template;
-uv_async_t Watcher::async;
-PLT_UPnP Watcher::upnp;
-PLT_CtrlPointReference Watcher::ctrlPoint;
 
 
 extern "C" {
