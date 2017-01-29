@@ -12,35 +12,34 @@ using namespace node;
 using namespace v8;
 
 #define REQUIRE_ARGUMENT_INTEGER(i, var)                                        \
-    if (args.Length() <= (i) || !args[i]->IsInt32()) {                        	\
-        return NanThrowTypeError("Argument " #i " must be an integer");        	\
+    if (info.Length() <= (i) || !info[i]->IsInt32()) {                        	\
+        return Nan::ThrowTypeError("Argument " #i " must be an integer");        	\
     }                                                                          	\
-    int var(args[i]->IntegerValue());
+    int var(info[i]->IntegerValue());
 
 #define REQUIRE_ARGUMENT_STRING(i, var)                                        \
-    if (args.Length() <= (i) || !args[i]->IsString()) {                        \
-        return NanThrowTypeError("Argument " #i " must be a string");          \
+    if (info.Length() <= (i) || !info[i]->IsString()) {                        \
+        return Nan::ThrowTypeError("Argument " #i " must be a string");          \
     }                                                                          \
-    String::Utf8Value var(args[i]->ToString());
+    String::Utf8Value var(info[i]->ToString());
 
 #define OPTIONAL_ARGUMENT_FUNCTION(i, var)                                     \
     Local<Function> var;                                                       \
-    if (args.Length() > i && !args[i]->IsUndefined()) {                        \
-        if (!args[i]->IsFunction()) {                                          \
-            return NanThrowTypeError("Argument " #i " must be a function");    \
+    if (info.Length() > i && !info[i]->IsUndefined()) {                        \
+        if (!info[i]->IsFunction()) {                                          \
+            return Nan::ThrowTypeError("Argument " #i " must be a function");  \
         }                                                                      \
-        var = Local<Function>::Cast(args[i]);                                  \
+        var = Local<Function>::Cast(info[i]);                                  \
     }
 
-#define OPTIONAL_CB_ACTION(i, var)												\
-    Local<Function> callbackHandle;                                             \
-    if (args.Length() > i && !args[i]->IsUndefined()) {                        \
-        if (!args[i]->IsFunction()) {                                          \
-            return NanThrowTypeError("Argument " #i " must be a function");    \
+#define OPTIONAL_CB_ACTION(i, var)											   \
+    Local<Function> callbackHandle;                                            \
+    if (info.Length() > i && !info[i]->IsUndefined()) {                        \
+        if (!info[i]->IsFunction()) {                                          \
+            return Nan::ThrowTypeError("Argument " #i " must be a function");  \
         }                                                                      \
-        callbackHandle = Local<Function>::Cast(args[i]);                       \
-        NanCallback *callback = new NanCallback(callbackHandle);                \
-        var = new CBAction(callback);                                           \
+        Nan::Callback *callback = new Nan::Callback(info[i].As<Function>());   \
+        var = new CBAction(callback);                                          \
     }
 
 
@@ -56,6 +55,7 @@ public:
 
 protected:
     MediaController* mc;
+    static Nan::Persistent<v8::Function> constructor;
 
 	Watcher() : ObjectWrap() {};
 	~Watcher(){};
@@ -74,7 +74,7 @@ protected:
 	static NAN_METHOD(SetVolume);
 	static NAN_METHOD(Seek);
 	static NAN_METHOD(GetRenderers);
-  static NAN_METHOD(GetServers);
+    static NAN_METHOD(GetServers);
 
 };
 

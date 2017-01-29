@@ -167,10 +167,10 @@ MediaController::OnCBActionResult(NPT_Result res,void* action){
     uv_async_send(async);
 }
 
-class BrowseAction : public NanAsyncWorker {
+class BrowseAction : public Nan::AsyncWorker {
 public:
-    BrowseAction(NanCallback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
-    : NanAsyncWorker(callback), uuid(uuid), objectId(objectId), mc(mc) {}
+    BrowseAction(Nan::Callback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
+    : Nan::AsyncWorker(callback), uuid(uuid), objectId(objectId), mc(mc) {}
     ~BrowseAction() {}
 
     void Execute () {
@@ -188,29 +188,28 @@ public:
     }
 
     void HandleOKCallback(){
-        NanScope();
         if(NPT_SUCCEEDED(res)){
-            Local<Array> dirArray = NanNew<Array>();
+            Local<Array> dirArray = Nan::New<Array>();
             if(!resultList.IsNull()){
                 NPT_List<PLT_MediaObject*>::Iterator item = resultList->GetFirstItem();
                 int i =0;
                 while (item) {
-                    Local<Object> temp = NanNew<Object>();
-                    temp->Set(NanNew("_id"),NanNew<String>((*item)->m_ObjectID));
-                    temp->Set(NanNew("Title"),NanNew<String>((*item)->m_Title));
-                    temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));
+                    Local<Object> temp = Nan::New<Object>();
+                    temp->Set(Nan::New<String>("_id").ToLocalChecked(),Nan::New<String>((*item)->m_ObjectID).ToLocalChecked());
+                    temp->Set(Nan::New<String>("Title").ToLocalChecked(),Nan::New<String>((*item)->m_Title).ToLocalChecked());
+                    temp->Set(Nan::New<String>("isContainer").ToLocalChecked(),Nan::New<Boolean>((*item)->IsContainer()));
                     dirArray->Set(i++,temp);
                     ++item;
                 }
             }
             Local<Value> argv[] = {
-                NanNull()
+                Nan::Null()
               , dirArray
             };
             callback->Call(2, argv);
         }else{
             Local<Value> argv[] = {
-                NanError(NPT_ResultText(res))
+                Nan::Error(NPT_ResultText(res))
             };
             callback->Call(1, argv);
         }
@@ -226,61 +225,60 @@ protected:
 
 class GetTracksAction : public BrowseAction{
 public:
-    GetTracksAction(NanCallback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
+    GetTracksAction(Nan::Callback *callback, NPT_String uuid,NPT_String objectId, MediaController* mc)
     : BrowseAction(callback,uuid,objectId,mc) {}
     ~GetTracksAction() {}
 
 
     Handle<Array> wrapResources(NPT_Array<PLT_MediaItemResource>* m_Resources){
-        NanEscapableScope();
-        Local<Array> resArray = NanNew<Array>((int)m_Resources->GetItemCount());
+        Nan::EscapableHandleScope scope;
+        Local<Array> resArray = Nan::New<Array>((int)m_Resources->GetItemCount());
         for (NPT_Cardinal u=0; u<m_Resources->GetItemCount(); u++) {
-            Local<Object> resObj = NanNew<Object>();
+            Local<Object> resObj = Nan::New<Object>();
             NPT_String protocol = (*m_Resources)[u].m_ProtocolInfo.ToString();
-            resObj->Set(NanNew("ProtocolInfo"),NanNew<String>(protocol));
-            resObj->Set(NanNew("Uri"),NanNew<String>((*m_Resources)[u].m_Uri));
-            resArray->Set(NanNew<Integer>(u),resObj);
+            resObj->Set(Nan::New<String>("ProtocolInfo").ToLocalChecked(),Nan::New<String>(protocol).ToLocalChecked());
+            resObj->Set(Nan::New<String>("Uri").ToLocalChecked(),Nan::New<String>((*m_Resources)[u].m_Uri).ToLocalChecked());
+            resArray->Set(Nan::New<Integer>(u),resObj);
         }
-        return NanEscapeScope(resArray);
+        return scope.Escape(resArray);
     }
     void HandleOKCallback(){
-        NanScope();
         if(NPT_SUCCEEDED(res)){
-            Local<Array> trackArray = NanNew<Array>((int)resultList->GetItemCount());
+            Local<Array> trackArray = Nan::New<Array>((int)resultList->GetItemCount());
             int i =0;
             NPT_List<PLT_MediaObject*>::Iterator item = resultList->GetFirstItem();
             while (item) {
-                Local<Object> temp = NanNew<Object>();
+                Local<Object> temp = Nan::New<Object>();
                 if(!(*item)->IsContainer()){
-                    temp->Set(NanNew("Resources"),wrapResources(&(*item)->m_Resources));
-                    temp->Set(NanNew("Didl"),NanNew<String>((*item)->m_Didl));
-                    temp->Set(NanNew("Title"),NanNew<String>((*item)->m_Title));
-                    temp->Set(NanNew("Album"),NanNew<String>((*item)->m_Affiliation.album));
-                    temp->Set(NanNew("TrackNumber"),NanNew<Integer>((*item)->m_MiscInfo.original_track_number));
+                    temp->Set(Nan::New<String>("Resources").ToLocalChecked(),wrapResources(&(*item)->m_Resources));
+                    temp->Set(Nan::New<String>("Didl").ToLocalChecked(),Nan::New<String>((*item)->m_Didl).ToLocalChecked());
+                    temp->Set(Nan::New<String>("Title").ToLocalChecked(),Nan::New<String>((*item)->m_Title).ToLocalChecked());
+                    temp->Set(Nan::New<String>("Album").ToLocalChecked(),Nan::New<String>((*item)->m_Affiliation.album).ToLocalChecked());
+                    temp->Set(Nan::New<String>("TrackNumber").ToLocalChecked(),Nan::New<Integer>((*item)->m_MiscInfo.original_track_number));
 
                     NPT_List<PLT_PersonRole>::Iterator person = (*item)->m_People.artists.GetFirstItem();
                     if(person){
-                        temp->Set(NanNew("Artist"),NanNew<String>((*item)->m_People.artists.GetFirstItem()->name));
+                        temp->Set(Nan::New<String>("Artist").ToLocalChecked(),Nan::New<String>((*item)->m_People.artists.GetFirstItem()->name).ToLocalChecked());
                     }else{
-                        temp->Set(NanNew("Artist"),NanNew("unknown"));
+                        temp->Set(Nan::New<String>("Artist").ToLocalChecked(),Nan::New<String>("unknown").ToLocalChecked());
                     }
                 }
 
-                temp->Set(NanNew("isContainer"),NanNew<Boolean>((*item)->IsContainer()));
-                temp->Set(NanNew("oID"),NanNew<String>((*item)->m_ObjectID));
+                temp->Set(Nan::New<String>("isContainer").ToLocalChecked(),Nan::New<Boolean>((*item)->IsContainer()));
+                temp->Set(Nan::New<String>("oID").ToLocalChecked(),Nan::New<String>((*item)->m_ObjectID).ToLocalChecked());
                 trackArray->Set(i,temp);
 
                 ++item;
                 i++;
             }
             Local<Value> argv[] = {
-                NanNull()
+                Nan::Null()
               , trackArray
             };
             callback->Call(2, argv);
         }else{
             Local<Value> argv[] = {
-                NanError(NPT_ResultText(res))
+                Nan::Error(NPT_ResultText(res))
             };
             callback->Call(1, argv);
         }
@@ -289,13 +287,13 @@ public:
 };
 
 void
-MediaController::BrowseDirectory(NanCallback *callback, NPT_String uuid,NPT_String objectId){
-    NanAsyncQueueWorker(new BrowseAction(callback, uuid, objectId,this));
+MediaController::BrowseDirectory(Nan::Callback *callback, NPT_String uuid,NPT_String objectId){
+    Nan::AsyncQueueWorker(new BrowseAction(callback, uuid, objectId,this));
 }
 
 void
-MediaController::GetTracks(NanCallback *callback, NPT_String uuid,NPT_String objectId){
-    NanAsyncQueueWorker(new GetTracksAction(callback, uuid, objectId,this));
+MediaController::GetTracks(Nan::Callback *callback, NPT_String uuid,NPT_String objectId){
+    Nan::AsyncQueueWorker(new GetTracksAction(callback, uuid, objectId,this));
 }
 
 NPT_Result
